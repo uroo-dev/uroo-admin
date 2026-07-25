@@ -9,10 +9,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory()->create([
+        $user = User::factory()->create([
             'name' => 'Dimas',
             'email' => 'dimas@uroo.dev',
             'password' => bcrypt('password'),
         ]);
+
+        $this->callWith(DemoSeeder::class, ['userId' => $user->id]);
     }
 }
