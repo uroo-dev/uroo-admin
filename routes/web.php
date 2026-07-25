@@ -16,9 +16,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::prefix('github')->group(function () {
-        Route::get('/', function () { return view('github.index'); })->name('github');
-    });
+    Route::get('/github', function () { return view('github.index'); })->name('github');
 
     Route::prefix('projects')->group(function () {
         Route::get('/', function () { return view('projects.index'); })->name('projects');
