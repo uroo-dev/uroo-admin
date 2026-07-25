@@ -14,6 +14,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $modules = [
+            'GitHub', 'Credential', 'Client', 'Invoice', 'Notes',
+            'Bookmark', 'QualityControl', 'Ideas', 'BrainDump',
+            'Savings', 'Subscription', 'Projects',
+        ];
+
+        foreach ($modules as $module) {
+            $path = base_path("Modules/{$module}/Migrations");
+            if (is_dir($path)) {
+                $this->loadMigrationsFrom($path);
+            }
+        }
+
         Livewire::component('repository-list', \Modules\GitHub\Livewire\RepositoryList::class);
         Livewire::component('commit-timeline', \Modules\GitHub\Livewire\CommitTimeline::class);
         Livewire::component('credential-list', \Modules\Credential\Livewire\CredentialList::class);
