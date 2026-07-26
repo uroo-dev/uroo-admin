@@ -1,0 +1,72 @@
+<?php
+
+namespace App\Http\Livewire;
+
+use Livewire\Component;
+use App\Models\Client;
+use App\Requests\ClientRequest;
+
+class ClientForm extends Component
+{
+    public ?Client $client = null;
+
+    public string $name = '';
+    public string $email = '';
+    public string $phone = '';
+    public string $whatsapp = '';
+    public string $company = '';
+    public string $address = '';
+    public string $website = '';
+    public string $notes = '';
+    public string $status = 'active';
+
+    public bool $isEdit = false;
+
+    protected $listeners = ['editClient' => 'loadClient'];
+
+    public function mount(?int $id = null): void
+    {
+        if ($id) {
+            $this->loadClient($id);
+        }
+    }
+
+    public function loadClient(int $id): void
+    {
+        $this->client = Client::findOrFail($id);
+        $this->isEdit = true;
+        $this->name = $this->client->name;
+        $this->email = $this->client->email ?? '';
+        $this->phone = $this->client->phone ?? '';
+        $this->whatsapp = $this->client->whatsapp ?? '';
+        $this->company = $this->client->company ?? '';
+        $this->address = $this->client->address ?? '';
+        $this->website = $this->client->website ?? '';
+        $this->notes = $this->client->notes ?? '';
+        $this->status = $this->client->status;
+    }
+
+    public function save(): void
+    {
+        $validated = $this->validate((new ClientRequest)->rules());
+
+        if ($this->isEdit) {
+            $this->client->update($validated);
+        } else {
+            $this->client = Client::create(array_merge($validated, [
+                'user_id' => auth()->id(),
+            ]));
+        }
+
+        $this->dispatch('client-saved');
+        $action = $this->isEdit ? 'updated' : 'created';
+        $this->dispatch('swal:success', title: 'Client ' . $action, text: "Client has been {$action} successfully.");
+
+        $this->redirect(route('clients.index'));
+    }
+
+    public function render()
+    {
+        return view('livewire.client-form');
+    }
+}

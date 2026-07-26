@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Models\SavingsGoal;
+use App\Models\SavingsTransaction;
+
+class SavingsController extends Controller
+{
+    public function index()
+    {
+        return view('savings.index');
+    }
+
+    public function store(\Illuminate\Http\Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'target_amount' => 'required|numeric|min:1',
+            'current_amount' => 'nullable|numeric|min:0',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:50',
+            'deadline' => 'nullable|date',
+            'notes' => 'nullable|string|max:5000',
+        ]);
+
+        $data['user_id'] = auth()->id();
+        $data['current_amount'] ??= 0;
+
+        SavingsGoal::create($data);
+
+        return redirect()->route('savings.index')->with('success', 'Savings goal created successfully.');
+    }
+
+    public function update(\Illuminate\Http\Request $request, SavingsGoal $goal)
+    {
+        $this->authorize('update', $goal);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'target_amount' => 'required|numeric|min:1',
+            'current_amount' => 'nullable|numeric|min:0',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:50',
+            'deadline' => 'nullable|date',
+            'notes' => 'nullable|string|max:5000',
+        ]);
+
+        $goal->update($data);
+
+        return redirect()->route('savings.index')->with('success', 'Savings goal updated successfully.');
+    }
+
+    public function destroy(SavingsGoal $goal)
+    {
+        $this->authorize('delete', $goal);
+        $goal->transactions()->delete();
+        $goal->delete();
+
+        return redirect()->route('savings.index')->with('success', 'Savings goal deleted successfully.');
+    }
+
+    public function deposit(\Illuminate\Http\Request $request, SavingsGoal $goal)
+    {
+        $this->authorize('deposit', $goal);
+
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        SavingsTransaction::create([
+            'goal_id' => $goal->id,
+            'type' => 'deposit',
+            'amount' => $data['amount'],
+            'description' => $data['description'] ?? 'Deposit',
+        ]);
+
+        $goal->increment('current_amount', $data['amount']);
+
+        return redirect()->route('savings.index')->with('success', 'Deposit added successfully.');
+    }
+
+    public function withdraw(\Illuminate\Http\Request $request, SavingsGoal $goal)
+    {
+        $this->authorize('withdraw', $goal);
+
+        $data = $request->validate([
+            'amount' => 'required|numeric|min:0.01|max:' . $goal->current_amount,
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        SavingsTransaction::create([
+            'goal_id' => $goal->id,
+            'type' => 'withdraw',
+            'amount' => $data['amount'],
+            'description' => $data['description'] ?? 'Withdrawal',
+        ]);
+
+        $goal->decrement('current_amount', $data['amount']);
+
+        return redirect()->route('savings.index')->with('success', 'Withdrawal added successfully.');
+    }
+}

@@ -132,7 +132,6 @@
             <main class="flex-1 overflow-y-auto p-8">
                 <div class="max-w-[1440px] mx-auto">
                     @yield('content')
-                    {{ $slot ?? '' }}
                 </div>
             </main>
         </div>
