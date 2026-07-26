@@ -36,15 +36,28 @@ class GitHubService
     {
         $total = $calendar['totalContributions'];
         $daily = [];
+        $weeks = [];
 
         foreach ($calendar['weeks'] as $week) {
+            $weekDays = [];
             foreach ($week['contributionDays'] as $day) {
                 $daily[$day['date']] = $day['contributionCount'];
+                $weekDays[] = [
+                    'date' => $day['date'],
+                    'count' => $day['contributionCount'],
+                ];
+            }
+            $weeks[] = $weekDays;
+        }
+
+        if (!empty($weeks)) {
+            $last = &$weeks[count($weeks) - 1];
+            while (count($last) < 7) {
+                $last[] = ['date' => '', 'count' => 0];
             }
         }
 
         $maxCount = max($daily) ?: 1;
-        $weeks = $this->buildContributionGrid($daily, now()->subYear());
 
         return compact('total', 'daily', 'maxCount', 'weeks');
     }

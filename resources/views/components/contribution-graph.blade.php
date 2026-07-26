@@ -2,17 +2,43 @@
 
 @php
     $dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    $months = [];
-    $currentMonth = null;
-    foreach ($stats['weeks'] as $weekIndex => $week) {
+
+    $allDays = [];
+    $idx = 0;
+    foreach ($stats['weeks'] as $week) {
         foreach ($week as $day) {
-            $month = \Carbon\Carbon::parse($day['date'])->format('M');
-            if ($month !== $currentMonth) {
-                $months[$weekIndex] = $month;
-                $currentMonth = $month;
-            }
+            $allDays[] = $day + ['flatIdx' => $idx];
+            $idx++;
         }
     }
+
+    $monthSpans = [];
+    $lastMonthKey = null;
+    $startIdx = 0;
+    foreach ($allDays as $i => $day) {
+        if ($day['date'] === '') continue;
+        $key = \Carbon\Carbon::parse($day['date'])->format('Y-n');
+        if ($key !== $lastMonthKey && $lastMonthKey !== null) {
+            $monthSpans[] = [
+                'label' => \Carbon\Carbon::parse($allDays[$startIdx]['date'])->format('M'),
+                'left' => $startIdx * 19,
+                'width' => ($i - $startIdx) * 19 - 3,
+            ];
+            $startIdx = $i;
+        }
+        $lastMonthKey = $key;
+    }
+    if ($lastMonthKey !== null) {
+        $monthSpans[] = [
+            'label' => \Carbon\Carbon::parse($allDays[$startIdx]['date'])->format('M'),
+            'left' => $startIdx * 19,
+            'width' => (count($allDays) - $startIdx) * 19 - 3,
+        ];
+    }
+
+    $cellSize = 16;
+    $gap = 3;
+    $colWidth = $cellSize + $gap;
 @endphp
 
 <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
@@ -31,10 +57,11 @@
     <div class="overflow-x-auto">
         <div class="inline-flex flex-col gap-1 min-w-[750px]">
             {{-- Month labels --}}
-            <div class="flex ml-10 mb-1">
-                @foreach ($months as $weekIndex => $month)
-                    <span class="text-xs font-bold text-txt-secondary {{ $weekIndex === array_key_first($months) ? '' : '' }}" style="width: {{ count($stats['weeks'][$weekIndex]) * 16 + (count($stats['weeks'][$weekIndex]) - 1) * 3 }}px">
-                        {{ $month }}
+            <div class="ml-10 mb-1" style="position: relative; height: 16px;">
+                @foreach ($monthSpans as $m)
+                    <span class="text-xs font-bold text-txt-secondary truncate"
+                          style="position: absolute; left: {{ $m['left'] }}px; width: {{ $m['width'] }}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ $m['label'] }}
                     </span>
                 @endforeach
             </div>
@@ -42,7 +69,7 @@
             {{-- Grid --}}
             <div class="flex gap-[3px]">
                 {{-- Day labels --}}
-                <div class="flex flex-col gap-[3px] mr-2 pt-0">
+                <div class="flex flex-col gap-[3px] mr-2">
                     @foreach ([1, 3, 5] as $dayIndex)
                         <div class="h-[16px] flex items-center">
                             <span class="text-[10px] font-bold text-txt-secondary leading-none">{{ $dayLabels[$dayIndex] }}</span>
@@ -65,9 +92,9 @@
                                     };
                                     $colors = ['#F3F4F6', '#BBF7D0', '#4ADE80', '#22C55E', '#166534'];
                                 @endphp
-                                <div class="w-[16px] h-[16px] rounded-sm border border-border-dark/20"
-                                     style="background-color: {{ $colors[$level] }}"
-                                     title="{{ $day['date'] }}: {{ $day['count'] }} contributions">
+                                <div class="rounded-sm border border-border-dark/20"
+                                     style="width: {{ $cellSize }}px; height: {{ $cellSize }}px; background-color: {{ $colors[$level] }}"
+                                     title="{{ $day['date'] ?: 'N/A' }}: {{ $day['count'] }} contributions">
                                 </div>
                             @endforeach
                         </div>
