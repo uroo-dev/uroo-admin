@@ -2,46 +2,13 @@
 
 @php
     $dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    $allDays = [];
-    $idx = 0;
-    foreach ($stats['weeks'] as $week) {
-        foreach ($week as $day) {
-            $allDays[] = $day + ['flatIdx' => $idx];
-            $idx++;
-        }
-    }
-
     $cellSize = 14;
     $gap = 2;
     $step = $cellSize + $gap;
-    $dayLabelWidth = 28;
-
-    $monthSpans = [];
-    $lastMonthKey = null;
-    $startIdx = 0;
-    foreach ($allDays as $i => $day) {
-        if ($day['date'] === '') continue;
-        $key = \Carbon\Carbon::parse($day['date'])->format('Y-n');
-        if ($key !== $lastMonthKey && $lastMonthKey !== null) {
-            $monthSpans[] = [
-                'label' => \Carbon\Carbon::parse($allDays[$startIdx]['date'])->format('M'),
-                'left' => $startIdx * $step,
-                'width' => ($i - $startIdx) * $step - $gap,
-            ];
-            $startIdx = $i;
-        }
-        $lastMonthKey = $key;
-    }
-    if ($lastMonthKey !== null) {
-        $monthSpans[] = [
-            'label' => \Carbon\Carbon::parse($allDays[$startIdx]['date'])->format('M'),
-            'left' => $startIdx * $step,
-            'width' => (count($allDays) - $startIdx) * $step - $gap,
-        ];
-    }
 
     $ghColors = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
+
+    $weekWidth = 7 * $cellSize + 6 * $gap;
 @endphp
 
 <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
@@ -62,15 +29,48 @@
 
     <div class="overflow-x-auto">
         <div class="inline-flex flex-col min-w-[750px]">
-            {{-- Month labels --}}
+            {{-- Month labels row --}}
             <div class="flex mb-[2px]">
-                <div class="mr-[4px]" style="width: {{ $dayLabelWidth }}px; flex-shrink: 0;"></div>
-                <div style="position: relative; height: 13px; flex: 1;">
-                    @foreach ($monthSpans as $m)
-                        <span class="text-[11px] font-semibold text-txt-secondary truncate"
-                              style="position: absolute; left: {{ $m['left'] }}px; width: {{ $m['width'] }}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            {{ $m['label'] }}
-                        </span>
+                {{-- Spacer for day labels --}}
+                <div class="flex flex-col mr-[4px]" style="gap: {{ $gap }}px;">
+                    @foreach ([1, 3, 5] as $dayIndex)
+                        <div style="height: {{ $cellSize }}px;"></div>
+                    @endforeach
+                </div>
+
+                {{-- Month per week column --}}
+                <div class="flex" style="gap: {{ $gap }}px;">
+                    @foreach ($stats['weeks'] as $wIdx => $week)
+                        <div style="width: {{ $weekWidth }}px; height: 13px; position: relative;">
+                            @php
+                                $newMonth = null;
+                                $firstReal = null;
+                                foreach ($week as $i => $day) {
+                                    if (empty($day['date'])) continue;
+                                    $d = \Carbon\Carbon::parse($day['date']);
+                                    if ($firstReal === null) $firstReal = ['date' => $d, 'idx' => $i];
+                                    if ($d->day === 1) {
+                                        $newMonth = [
+                                            'label' => $d->format('M'),
+                                            'left' => $i * $step,
+                                        ];
+                                        break;
+                                    }
+                                }
+                                if ($newMonth === null && $firstReal && $wIdx === 0) {
+                                    $newMonth = [
+                                        'label' => $firstReal['date']->format('M'),
+                                        'left' => $firstReal['idx'] * $step,
+                                    ];
+                                }
+                            @endphp
+                            @if ($newMonth)
+                                <span class="text-[11px] font-semibold text-txt-secondary"
+                                      style="position: absolute; left: {{ $newMonth['left'] }}px; top: 0; white-space: nowrap;">
+                                    {{ $newMonth['label'] }}
+                                </span>
+                            @endif
+                        </div>
                     @endforeach
                 </div>
             </div>
