@@ -2,6 +2,7 @@
 
 namespace Modules\GitHub\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Modules\GitHub\Models\Commit;
 use Modules\GitHub\Models\Repository;
 
@@ -19,6 +20,37 @@ class GitHubService
 
     public function getContributionStats(): array
     {
+        return Cache::remember('github:contributions', 3600, function () {
+            $api = app(GitHubApiService::class);
+            $calendar = $api->fetchContributions();
+
+            if ($calendar !== null) {
+                return $this->fromGitHubGraphQL($calendar);
+            }
+
+            return $this->fromLocalDatabase();
+        });
+    }
+
+    private function fromGitHubGraphQL(array $calendar): array
+    {
+        $total = $calendar['totalContributions'];
+        $daily = [];
+
+        foreach ($calendar['weeks'] as $week) {
+            foreach ($week['contributionDays'] as $day) {
+                $daily[$day['date']] = $day['contributionCount'];
+            }
+        }
+
+        $maxCount = max($daily) ?: 1;
+        $weeks = $this->buildContributionGrid($daily, now()->subYear());
+
+        return compact('total', 'daily', 'maxCount', 'weeks');
+    }
+
+    private function fromLocalDatabase(): array
+    {
         $oneYearAgo = now()->subYear();
 
         $total = Commit::where('committed_at', '>=', $oneYearAgo)->count();
@@ -29,7 +61,6 @@ class GitHubService
             ->pluck('count', 'date');
 
         $maxCount = $daily->max() ?: 1;
-
         $weeks = $this->buildContributionGrid($daily, $oneYearAgo);
 
         return compact('total', 'daily', 'maxCount', 'weeks');
@@ -39,7 +70,6 @@ class GitHubService
     {
         $weeks = [];
         $current = $oneYearAgo->copy()->startOfWeek();
-
         $end = now()->endOfWeek();
 
         while ($current <= $end) {

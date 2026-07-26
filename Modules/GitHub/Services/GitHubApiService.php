@@ -163,4 +163,55 @@ class GitHubApiService
             'commits' => $commitsCount,
         ];
     }
+
+    public function fetchContributions(): ?array
+    {
+        if (!$this->isConfigured()) {
+            return null;
+        }
+
+        $from = now()->subYear()->startOfDay()->toIso8601String();
+        $to = now()->endOfDay()->toIso8601String();
+
+        $query = <<<'GRAPHQL'
+query($username: String!, $from: DateTime!, $to: DateTime!) {
+  user(login: $username) {
+    contributionsCollection(from: $from, to: $to) {
+      contributionCalendar {
+        totalContributions
+        weeks {
+          contributionDays {
+            contributionCount
+            date
+            color
+          }
+        }
+      }
+    }
+  }
+}
+GRAPHQL;
+
+        $response = Http::withToken($this->token)
+            ->post('https://api.github.com/graphql', [
+                'query' => $query,
+                'variables' => [
+                    'username' => $this->username,
+                    'from' => $from,
+                    'to' => $to,
+                ],
+            ]);
+
+        if (!$response->successful()) {
+            return null;
+        }
+
+        $data = $response->json();
+
+        if (isset($data['errors'])) {
+            return null;
+        }
+
+        return $data['data']['user']['contributionsCollection']['contributionCalendar'] ?? null;
+    }
 }
