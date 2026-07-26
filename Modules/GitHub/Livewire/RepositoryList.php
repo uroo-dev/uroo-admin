@@ -44,8 +44,8 @@ class RepositoryList extends Component
 
         $repositories = $query->orderBy($sortField, $this->sortDirection)->paginate(10);
 
-        $languages = Cache::remember('github:languages', 3600, fn () =>
-            Repository::select('language')->distinct()->whereNotNull('language')->orderBy('language')->pluck('language')
+        $languages = Cache::remember('github:languages:v2', 3600, fn () =>
+            Repository::select('language')->distinct()->whereNotNull('language')->orderBy('language')->pluck('language')->values()->toArray()
         );
 
         return view('livewire.repository-list', compact('repositories', 'languages'));
@@ -77,7 +77,8 @@ class RepositoryList extends Component
         }
 
         $result = $api->syncAll(auth()->id());
-        Cache::forget('github:languages');
+        Cache::forget('github:languages:v2');
+        Cache::forget('github:contributions');
         $this->dispatch('swal:success', title: 'Sync completed', text: "{$result['repositories']} repos, {$result['commits']} commits synced");
         $this->resetPage();
     }
