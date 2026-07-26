@@ -25,10 +25,14 @@ class GitHubService
             $calendar = $api->fetchContributions();
 
             if ($calendar !== null) {
-                return $this->fromGitHubGraphQL($calendar);
+                $stats = $this->fromGitHubGraphQL($calendar);
+                $stats['source'] = 'github';
+                return $stats;
             }
 
-            return $this->fromLocalDatabase();
+            $stats = $this->fromLocalDatabase();
+            $stats['source'] = 'local';
+            return $stats;
         });
     }
 

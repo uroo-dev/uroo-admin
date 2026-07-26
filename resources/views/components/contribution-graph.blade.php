@@ -36,9 +36,10 @@
         ];
     }
 
-    $cellSize = 16;
-    $gap = 3;
-    $colWidth = $cellSize + $gap;
+    $cellSize = 14;
+    $gap = 2;
+
+    $ghColors = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
 @endphp
 
 <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
@@ -50,16 +51,19 @@
             <div>
                 <p class="text-3xl font-extrabold text-txt-primary">{{ number_format($stats['total']) }}</p>
                 <p class="text-sm font-medium text-txt-secondary">contributions in the last year</p>
+                @if (($stats['source'] ?? '') === 'local')
+                    <p class="text-[10px] font-medium text-txt-secondary/60">⚠ using local data (GitHub GraphQL unavailable)</p>
+                @endif
             </div>
         </div>
     </div>
 
     <div class="overflow-x-auto">
-        <div class="inline-flex flex-col gap-1 min-w-[750px]">
+        <div class="inline-flex flex-col min-w-[750px]">
             {{-- Month labels --}}
-            <div class="ml-10 mb-1" style="position: relative; height: 16px;">
+            <div class="ml-[30px] mb-[2px]" style="position: relative; height: 13px;">
                 @foreach ($monthSpans as $m)
-                    <span class="text-xs font-bold text-txt-secondary truncate"
+                    <span class="text-[11px] font-semibold text-txt-secondary truncate"
                           style="position: absolute; left: {{ $m['left'] }}px; width: {{ $m['width'] }}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                         {{ $m['label'] }}
                     </span>
@@ -67,20 +71,20 @@
             </div>
 
             {{-- Grid --}}
-            <div class="flex gap-[3px]">
+            <div class="flex">
                 {{-- Day labels --}}
-                <div class="flex flex-col gap-[3px] mr-2">
+                <div class="flex flex-col mr-[4px]" style="gap: {{ $gap }}px;">
                     @foreach ([1, 3, 5] as $dayIndex)
-                        <div class="h-[16px] flex items-center">
-                            <span class="text-[10px] font-bold text-txt-secondary leading-none">{{ $dayLabels[$dayIndex] }}</span>
+                        <div style="height: {{ $cellSize }}px; display: flex; align-items: center;">
+                            <span class="text-[10px] font-medium text-txt-secondary leading-none">{{ $dayLabels[$dayIndex] }}</span>
                         </div>
                     @endforeach
                 </div>
 
                 {{-- Contribution cells --}}
-                <div class="flex gap-[3px]">
+                <div class="flex" style="gap: {{ $gap }}px;">
                     @foreach ($stats['weeks'] as $week)
-                        <div class="flex flex-col gap-[3px]">
+                        <div class="flex flex-col" style="gap: {{ $gap }}px;">
                             @foreach ($week as $day)
                                 @php
                                     $level = match(true) {
@@ -90,11 +94,9 @@
                                         $day['count'] <= 15 => 3,
                                         default => 4,
                                     };
-                                    $colors = ['#F3F4F6', '#BBF7D0', '#4ADE80', '#22C55E', '#166534'];
                                 @endphp
-                                <div class="rounded-sm border border-border-dark/20"
-                                     style="width: {{ $cellSize }}px; height: {{ $cellSize }}px; background-color: {{ $colors[$level] }}"
-                                     title="{{ $day['date'] ?: 'N/A' }}: {{ $day['count'] }} contributions">
+                                <div style="width: {{ $cellSize }}px; height: {{ $cellSize }}px; border-radius: 2px; background-color: {{ $ghColors[$level] }}"
+                                     title="{{ $day['date'] ?: 'N/A' }}: {{ $day['count'] }} {{ $day['count'] === 1 ? 'contribution' : 'contributions' }}">
                                 </div>
                             @endforeach
                         </div>
@@ -103,12 +105,12 @@
             </div>
 
             {{-- Legend --}}
-            <div class="flex items-center justify-end gap-2 mt-3">
-                <span class="text-[10px] font-bold text-txt-secondary">Less</span>
-                @foreach (['#F3F4F6', '#BBF7D0', '#4ADE80', '#22C55E', '#166534'] as $color)
-                    <div class="w-[14px] h-[14px] rounded-sm border border-border-dark/20" style="background-color: {{ $color }}"></div>
+            <div class="flex items-center justify-end gap-[2px] mt-[8px]">
+                <span class="text-[10px] font-medium text-txt-secondary mr-[4px]">Less</span>
+                @foreach ($ghColors as $color)
+                    <div style="width: 12px; height: 12px; border-radius: 2px; background-color: {{ $color }}"></div>
                 @endforeach
-                <span class="text-[10px] font-bold text-txt-secondary">More</span>
+                <span class="text-[10px] font-medium text-txt-secondary ml-[4px]">More</span>
             </div>
         </div>
     </div>

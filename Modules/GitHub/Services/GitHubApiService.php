@@ -193,6 +193,7 @@ query($username: String!, $from: DateTime!, $to: DateTime!) {
 GRAPHQL;
 
         $response = Http::withToken($this->token)
+            ->withUserAgent('UROO-DEV-Workspace/1.0')
             ->post('https://api.github.com/graphql', [
                 'query' => $query,
                 'variables' => [
@@ -203,15 +204,32 @@ GRAPHQL;
             ]);
 
         if (!$response->successful()) {
+            logger()->warning('GitHub GraphQL request failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
             return null;
         }
 
         $data = $response->json();
 
         if (isset($data['errors'])) {
+            logger()->warning('GitHub GraphQL returned errors', $data['errors']);
             return null;
         }
 
-        return $data['data']['user']['contributionsCollection']['contributionCalendar'] ?? null;
+        $calendar = $data['data']['user']['contributionsCollection']['contributionCalendar'] ?? null;
+
+        if ($calendar === null) {
+            logger()->warning('GitHub GraphQL: contributionCalendar is null');
+            return null;
+        }
+
+        logger()->info('GitHub GraphQL contributions fetched', [
+            'total' => $calendar['totalContributions'],
+            'weeks' => count($calendar['weeks']),
+        ]);
+
+        return $calendar;
     }
 }
