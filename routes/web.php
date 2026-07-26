@@ -12,6 +12,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SavingsController;
+use App\Http\Controllers\QualityControlController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 
@@ -56,5 +57,10 @@ Route::middleware('auth')->group(function () {
     // GitHub & Quality Control
     Route::get('/github', [GitHubController::class, 'index'])->name('github');
     Route::post('/github/sync', [GitHubController::class, 'sync'])->name('github.sync');
-    Route::get('/quality-control', function () { return view('quality-control.index'); })->name('quality-control');
+    // Quality Control
+    Route::get('/quality-control', [QualityControlController::class, 'index'])->name('quality-control');
+    Route::post('/quality-control', [QualityControlController::class, 'store'])->name('quality-control.store');
+    Route::patch('/quality-control/{qualityChecklist}', [QualityControlController::class, 'update'])->name('quality-control.update');
+    Route::delete('/quality-control/{qualityChecklist}', [QualityControlController::class, 'destroy'])->name('quality-control.destroy');
+    Route::patch('/quality-control/checklist-items/{checklistItem}/toggle-checked', [QualityControlController::class, 'toggleChecked'])->name('quality-control.toggle-checked');
 });

@@ -98,9 +98,11 @@
                         class="p-2 rounded-lg text-txt-secondary hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out" title="Edit Project">
                         <i class="bx bx-edit text-lg"></i>
                     </button>
-                    <form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('Hapus project?')" class="inline">
+                    <form id="del-proj-{{ $project->id }}" method="POST" action="{{ route('projects.destroy', $project) }}" class="inline">
                         @csrf @method('DELETE')
-                        <button type="submit" class="p-2 rounded-lg text-txt-secondary hover:bg-danger/10 hover:text-danger hover:scale-110 active:scale-95 transition-all duration-200 ease-out" title="Delete Project">
+                        <button type="button"
+                            onclick="deleteProject('del-proj-{{ $project->id }}', {{ json_encode($project->name) }})"
+                            class="p-2 rounded-lg text-txt-secondary hover:bg-danger/10 hover:text-danger hover:scale-110 active:scale-95 transition-all duration-200 ease-out" title="Delete Project">
                             <i class="bx bx-trash text-lg"></i>
                         </button>
                     </form>
@@ -228,6 +230,18 @@
             resetTechStack();
             const stack = techStack ? JSON.parse(techStack) : [];
             stack.forEach(item => addTechStackItem(item));
+        }
+
+        function deleteProject(formId, name) {
+            Swal.fire({
+                title: 'Hapus Project?',
+                text: '"' + name + '" akan dihapus permanen.',
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#EF4444', cancelButtonColor: '#6B7280',
+                confirmButtonText: 'Ya, hapus!', cancelButtonText: 'Batal',
+                background: '#FFFFFF',
+                customClass: { popup: 'border-4 border-border-dark rounded-modal shadow-hard' }
+            }).then(r => { if (r.isConfirmed) document.getElementById(formId).submit(); });
         }
 
         // Reset modal to "New Project" state when opened fresh
