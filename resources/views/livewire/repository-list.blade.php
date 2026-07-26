@@ -3,11 +3,6 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h3 class="text-lg font-extrabold">Repositories</h3>
         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
-            <button wire:click="sync" wire:loading.attr="disabled" wire:target="sync"
-                class="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 transition-all duration-200 ease-out flex items-center justify-center gap-2">
-                <span wire:loading.remove wire:target="sync"><i class="bx bx-sync text-lg"></i> Sync from GitHub</span>
-                <span wire:loading wire:target="sync"><i class="bx bx-loader-alt animate-spin text-lg"></i> Syncing...</span>
-            </button>
             <select wire:model.live="language"
                 class="w-full sm:w-auto px-4 py-2.5 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
                 <option value="">All Languages</option>

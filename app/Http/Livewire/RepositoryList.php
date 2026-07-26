@@ -15,12 +15,18 @@ class RepositoryList extends Component
     public string $language = '';
     public string $sortField = 'last_pushed_at';
     public string $sortDirection = 'desc';
+    public bool $loaded = false;
 
     private const ALLOWED_SORT_FIELDS = [
         'name', 'stars', 'forks', 'open_issues', 'updated_at', 'last_pushed_at',
     ];
 
     protected $queryString = ['search', 'language', 'sortField', 'sortDirection'];
+
+    public function mount(): void
+    {
+        $this->syncSilently();
+    }
 
     public function render()
     {
@@ -74,6 +80,23 @@ class RepositoryList extends Component
         Cache::forget('github:contributions');
         $this->dispatch('swal:success', title: 'Sync completed', text: "{$result['repositories']} repos, {$result['commits']} commits synced");
         $this->resetPage();
+    }
+
+    private function syncSilently(): void
+    {
+        if (Repository::exists()) {
+            return;
+        }
+
+        $api = app(\App\Services\GitHubApiService::class);
+
+        if (!$api->isConfigured()) {
+            return;
+        }
+
+        $result = $api->syncAll(auth()->id());
+        Cache::forget('github:languages:v2');
+        Cache::forget('github:contributions');
     }
 
     public function updatingSearch(): void
