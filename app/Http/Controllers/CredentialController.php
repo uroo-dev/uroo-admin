@@ -50,7 +50,14 @@ class CredentialController extends Controller
     public function update(CredentialRequest $request, Credential $credential)
     {
         $this->authorize('update', $credential);
-        $credential->update($request->validated());
+        $data = $request->validated();
+
+        // Don't overwrite existing password if field left blank
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
+
+        $credential->update($data);
         return redirect()->route('credentials.index')->with('success', 'Credential updated successfully.');
     }
 
