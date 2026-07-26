@@ -23,6 +23,7 @@ class ProjectRequest extends FormRequest
             'platform' => ['nullable', 'string', 'max:100'],
             'tech_stack' => ['nullable', 'array'],
             'tech_stack.*' => ['string', 'max:50'],
+            'progress' => ['nullable', 'integer', 'min:0', 'max:100'],
             'storage_usage' => ['nullable', 'integer', 'min:0'],
             'start_date' => ['nullable', 'date'],
             'deadline' => ['nullable', 'date', 'after_or_equal:start_date'],

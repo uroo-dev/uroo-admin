@@ -94,7 +94,7 @@
                     </div>
                 </div>
                 <div class="flex items-center justify-end gap-2 mt-4 pt-4 border-t-4 border-border-dark">
-                    <button onclick="editProject({{ $project->id }}, '{{ $project->name }}', '{{ addslashes($project->description ?? '') }}', {{ $project->client_id ?? 'null' }}, '{{ $project->category ?? '' }}', '{{ $project->status }}', {{ $project->progress ?? 0 }})"
+                    <button onclick="editProject({{ $project->id }}, '{{ addslashes($project->name) }}', '{{ addslashes($project->description ?? '') }}', {{ $project->client_id ?? 'null' }}, '{{ $project->category ?? '' }}', '{{ $project->status }}', {{ $project->progress ?? 0 }}, '{{ addslashes(json_encode($project->tech_stack ?? [])) }}')"
                         class="p-2 rounded-lg text-txt-secondary hover:bg-primary/10 hover:text-primary hover:scale-110 active:scale-95 transition-all duration-200 ease-out" title="Edit Project">
                         <i class="bx bx-edit text-lg"></i>
                     </button>
@@ -192,7 +192,27 @@
     </div>
 
     <script>
-        function editProject(id, name, description, clientId, category, status, progress) {
+        function addTechStackItem(value = '') {
+            const list = document.getElementById('tech-stack-list');
+            const index = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'flex items-center gap-2';
+            row.innerHTML = `
+                <input type="text" name="tech_stack[]" value="${value.replace(/"/g, '&quot;')}" placeholder="e.g. Laravel, Vue.js, MySQL"
+                    class="flex-1 px-4 py-2.5 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
+                <button type="button" onclick="this.closest('div').remove()"
+                    class="p-2 rounded-lg text-txt-secondary hover:bg-danger/10 hover:text-danger transition-all duration-200 ease-out flex-shrink-0">
+                    <i class="bx bx-x text-xl"></i>
+                </button>`;
+            list.appendChild(row);
+            row.querySelector('input').focus();
+        }
+
+        function resetTechStack() {
+            document.getElementById('tech-stack-list').innerHTML = '';
+        }
+
+        function editProject(id, name, description, clientId, category, status, progress, techStack) {
             document.getElementById('project-form').classList.remove('hidden');
             document.getElementById('project-form-title').textContent = 'Edit Project';
             document.getElementById('project-id').value = id;
@@ -204,11 +224,25 @@
             document.getElementById('project-progress').value = progress;
             document.getElementById('project-method').value = 'PUT';
             document.querySelector('#project-form form').action = '{{ url('projects') }}/' + id;
+
+            resetTechStack();
+            const stack = techStack ? JSON.parse(techStack) : [];
+            stack.forEach(item => addTechStackItem(item));
         }
-        document.getElementById('project-form')?.addEventListener('hidden', function() {
+
+        // Reset modal to "New Project" state when opened fresh
+        document.querySelector('[onclick*="project-form"]')?.addEventListener('click', function () {
             document.getElementById('project-form-title').textContent = 'New Project';
+            document.getElementById('project-id').value = '';
+            document.getElementById('project-name').value = '';
+            document.getElementById('project-description').value = '';
+            document.getElementById('project-client').value = '';
+            document.getElementById('project-category').value = '';
+            document.getElementById('project-status').value = 'development';
+            document.getElementById('project-progress').value = '0';
             document.getElementById('project-method').value = 'POST';
             document.querySelector('#project-form form').action = '{{ route('projects.store') }}';
+            resetTechStack();
         });
     </script>
 @endsection
