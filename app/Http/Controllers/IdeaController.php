@@ -5,15 +5,46 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\AppIdea;
+use Illuminate\Http\Request;
 
 class IdeaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('ideas.index');
+        $query = AppIdea::where('user_id', auth()->id());
+        $search = $request->input('search', '');
+        $statusFilter = $request->input('status', '');
+        $platformFilter = $request->input('platform', '');
+        $sortField = in_array($request->input('sort', 'created_at'), ['name', 'status', 'priority', 'platform', 'created_at']) ? $request->input('sort') : 'created_at';
+        $sortDirection = $request->input('direction', 'desc') === 'asc' ? 'asc' : 'desc';
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('tagline', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+        if ($statusFilter) {
+            $query->where('status', $statusFilter);
+        }
+        if ($platformFilter) {
+            $query->where('platform', $platformFilter);
+        }
+
+        $ideas = $query->orderBy($sortField, $sortDirection)->paginate(12)->appends($request->query());
+
+        $stats = [
+            'total' => AppIdea::where('user_id', auth()->id())->count(),
+            'draft' => AppIdea::where('user_id', auth()->id())->where('status', 'draft')->count(),
+            'development' => AppIdea::where('user_id', auth()->id())->where('status', 'development')->count(),
+            'archived' => AppIdea::where('user_id', auth()->id())->where('status', 'archived')->count(),
+        ];
+
+        return view('ideas.index', compact('ideas', 'stats', 'search', 'statusFilter', 'platformFilter', 'sortField', 'sortDirection'));
     }
 
-    public function store(\Illuminate\Http\Request $request)
+    public function store(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -27,16 +58,13 @@ class IdeaController extends Controller
             'tags' => 'nullable|array',
             'notes' => 'nullable|string',
         ]);
-
         auth()->user()->ideas()->create($data);
-
         return redirect()->route('ideas.index')->with('success', 'Idea created successfully.');
     }
 
-    public function update(\Illuminate\Http\Request $request, AppIdea $idea)
+    public function update(Request $request, AppIdea $idea)
     {
         $this->authorize('update', $idea);
-
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'tagline' => 'nullable|string|max:500',
@@ -49,9 +77,7 @@ class IdeaController extends Controller
             'tags' => 'nullable|array',
             'notes' => 'nullable|string',
         ]);
-
         $idea->update($data);
-
         return redirect()->route('ideas.index')->with('success', 'Idea updated successfully.');
     }
 
@@ -59,7 +85,6 @@ class IdeaController extends Controller
     {
         $this->authorize('delete', $idea);
         $idea->delete();
-
         return redirect()->route('ideas.index')->with('success', 'Idea deleted successfully.');
     }
 }

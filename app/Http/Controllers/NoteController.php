@@ -3,15 +3,41 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
+use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('notes.index');
+        $query = Note::query();
+        $search = $request->input('search', '');
+        $category = $request->input('category', '');
+        $showFavorites = $request->boolean('favorites');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('content', 'like', "%{$search}%");
+            });
+        }
+        if ($category) {
+            $query->where('category', $category);
+        }
+        if ($showFavorites) {
+            $query->where('is_favorite', true);
+        }
+
+        $notes = $query->orderBy('is_pinned', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(12)
+            ->appends($request->query());
+
+        $categories = Note::select('category')->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
+
+        return view('notes.index', compact('notes', 'categories', 'search', 'category', 'showFavorites'));
     }
 
-    public function store(\Illuminate\Http\Request $request)
+    public function store(Request $request)
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -21,16 +47,13 @@ class NoteController extends Controller
             'is_pinned' => 'boolean',
             'is_favorite' => 'boolean',
         ]);
-
         auth()->user()->notes()->create($data);
-
         return redirect()->route('notes.index')->with('success', 'Note created successfully.');
     }
 
-    public function update(\Illuminate\Http\Request $request, Note $note)
+    public function update(Request $request, Note $note)
     {
         $this->authorize('update', $note);
-
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
@@ -39,9 +62,7 @@ class NoteController extends Controller
             'is_pinned' => 'boolean',
             'is_favorite' => 'boolean',
         ]);
-
         $note->update($data);
-
         return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
     }
 
@@ -49,7 +70,20 @@ class NoteController extends Controller
     {
         $this->authorize('delete', $note);
         $note->delete();
-
         return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
+    }
+
+    public function togglePin(Note $note)
+    {
+        $this->authorize('update', $note);
+        $note->update(['is_pinned' => !$note->is_pinned]);
+        return redirect()->route('notes.index');
+    }
+
+    public function toggleFavorite(Note $note)
+    {
+        $this->authorize('update', $note);
+        $note->update(['is_favorite' => !$note->is_favorite]);
+        return redirect()->route('notes.index');
     }
 }

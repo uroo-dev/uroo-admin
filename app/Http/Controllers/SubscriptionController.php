@@ -5,15 +5,31 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Subscription;
+use App\Services\SubscriptionService;
+use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return view('subscriptions.index');
+        $service = app(SubscriptionService::class);
+        $statusFilter = $request->input('status', '');
+        $categoryFilter = $request->input('category', '');
+
+        $subscriptions = Subscription::where('user_id', auth()->id())
+            ->when($statusFilter, fn($q) => $q->where('payment_status', $statusFilter))
+            ->when($categoryFilter, fn($q) => $q->where('category', $categoryFilter))
+            ->orderBy('due_date', 'asc')
+            ->paginate(15)
+            ->appends($request->query());
+
+        $stats = $service->getStats(auth()->id());
+        $categories = Subscription::where('user_id', auth()->id())->whereNotNull('category')->distinct('category')->pluck('category');
+
+        return view('subscriptions.index', compact('subscriptions', 'stats', 'categories', 'statusFilter', 'categoryFilter'));
     }
 
-    public function store(\Illuminate\Http\Request $request)
+    public function store(Request $request)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -29,17 +45,14 @@ class SubscriptionController extends Controller
             'is_active' => 'boolean',
             'notes' => 'nullable|string|max:5000',
         ]);
-
         $data['user_id'] = auth()->id();
         auth()->user()->subscriptions()->create($data);
-
         return redirect()->route('subscriptions.index')->with('success', 'Subscription created successfully.');
     }
 
-    public function update(\Illuminate\Http\Request $request, Subscription $subscription)
+    public function update(Request $request, Subscription $subscription)
     {
         $this->authorize('update', $subscription);
-
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'provider' => 'nullable|string|max:255',
@@ -54,9 +67,7 @@ class SubscriptionController extends Controller
             'is_active' => 'boolean',
             'notes' => 'nullable|string|max:5000',
         ]);
-
         $subscription->update($data);
-
         return redirect()->route('subscriptions.index')->with('success', 'Subscription updated successfully.');
     }
 
@@ -64,17 +75,20 @@ class SubscriptionController extends Controller
     {
         $this->authorize('delete', $subscription);
         $subscription->delete();
-
         return redirect()->route('subscriptions.index')->with('success', 'Subscription deleted successfully.');
     }
 
     public function togglePayment(Subscription $subscription)
     {
         $this->authorize('togglePayment', $subscription);
-        $subscription->update([
-            'payment_status' => $subscription->payment_status === 'paid' ? 'unpaid' : 'paid',
-        ]);
-
+        $subscription->update(['payment_status' => $subscription->payment_status === 'paid' ? 'unpaid' : 'paid']);
         return redirect()->route('subscriptions.index')->with('success', 'Payment status updated.');
+    }
+
+    public function toggleActive(Subscription $subscription)
+    {
+        $this->authorize('update', $subscription);
+        $subscription->update(['is_active' => !$subscription->is_active]);
+        return redirect()->route('subscriptions.index');
     }
 }
