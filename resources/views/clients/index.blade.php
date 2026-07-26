@@ -12,7 +12,7 @@
                     <i class="bx bx-group text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.totalClients ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['total'] ?? 0 }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Total Clients</p>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                     <i class="bx bx-user-check text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.activeClients ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['active'] ?? 0 }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Active</p>
                 </div>
             </div>
@@ -36,8 +36,8 @@
                     <i class="bx bx-briefcase text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.totalProjects ?? 0">0</p>
-                    <p class="text-sm font-medium text-txt-secondary">Projects</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['inactive'] ?? 0 }}</p>
+                    <p class="text-sm font-medium text-txt-secondary">Inactive</p>
                 </div>
             </div>
         </div>
@@ -48,7 +48,7 @@
                     <i class="bx bx-time-five text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.recentClients ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ ($stats['active'] ?? 0) + ($stats['inactive'] ?? 0) }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Recent</p>
                 </div>
             </div>
@@ -92,7 +92,7 @@
                             <td class="px-6 py-4 text-txt-secondary">{{ $client->phone }}</td>
                             <td class="px-6 py-4 text-txt-secondary">{{ $client->company }}</td>
                             <td class="px-6 py-4">
-                                @if ($client->is_active)
+                                @if ($client->status === 'active')
                                     <x-badge variant="success">Active</x-badge>
                                 @else
                                     <x-badge variant="danger">Inactive</x-badge>
@@ -123,41 +123,15 @@
                 </tbody>
             </table>
         </div>
-        @if (method_exists($clients ?? [], 'links'))
+        @if (is_object($clients) && method_exists($clients, 'links'))
             <div class="px-6 py-4 border-t-4 border-border-dark">
                 {{ $clients->links() }}
             </div>
         @endif
     </div>
 
-    {{-- Livewire Client List --}}
-    @livewire('client-list')
-
     {{-- Modal Form --}}
     <x-modal id="client-form" title="Client Form">
-        <form wire:submit="save" class="space-y-5">
-            <x-input label="Name" name="name" placeholder="Client name" wire:model="form.name" />
-            <x-input label="Email" name="email" type="email" placeholder="client@example.com" wire:model="form.email" />
-            <x-input label="Phone" name="phone" placeholder="+62 812 3456 7890" wire:model="form.phone" />
-            <x-input label="Company" name="company" placeholder="Company name" wire:model="form.company" />
-
-            <div class="flex items-center gap-3">
-                <label class="text-sm font-semibold text-txt-primary">Status</label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" wire:model="form.is_active" class="w-5 h-5 rounded border-4 border-border-dark text-primary focus:ring-primary">
-                    <span class="text-sm font-medium">Active</span>
-                </label>
-            </div>
-
-            <div class="flex justify-end gap-3 pt-2">
-                <x-button variant="secondary" type="button" @click="$dispatch('close-modal', { id: 'client-form' })">
-                    Cancel
-                </x-button>
-                <x-button variant="primary" type="submit">
-                    <i class="bx bx-check"></i>
-                    Save Client
-                </x-button>
-            </div>
-        </form>
+        @livewire('client-form')
     </x-modal>
 @endsection

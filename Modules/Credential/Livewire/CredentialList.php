@@ -15,7 +15,80 @@ class CredentialList extends Component
     public string $type = '';
     public bool $showFavorites = false;
 
+    public ?int $editId = null;
+    public string $label = '';
+    public string $credentialType = '';
+    public string $provider = '';
+    public string $domain = '';
+    public string $username = '';
+    public string $password = '';
+    public string $notes = '';
+
     protected $queryString = ['search', 'type', 'showFavorites'];
+
+    protected function rules(): array
+    {
+        return [
+            'label' => 'required|string|max:255',
+            'credentialType' => 'required|string|max:50',
+            'provider' => 'nullable|string|max:255',
+            'domain' => 'nullable|string|max:255',
+            'username' => 'nullable|string|max:255',
+            'password' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ];
+    }
+
+    public function save(): void
+    {
+        $this->validate();
+
+        $data = [
+            'user_id' => auth()->id(),
+            'label' => $this->label,
+            'type' => $this->credentialType,
+            'provider' => $this->provider,
+            'domain' => $this->domain,
+            'username' => $this->username,
+            'password' => encrypt($this->password),
+            'notes' => $this->notes,
+        ];
+
+        if ($this->editId) {
+            Credential::findOrFail($this->editId)->update($data);
+            $this->dispatch('swal:success', title: 'Credential diperbarui');
+        } else {
+            Credential::create($data);
+            $this->dispatch('swal:success', title: 'Credential ditambahkan');
+        }
+
+        $this->resetForm();
+        $this->dispatch('close-modal', id: 'credential-form');
+    }
+
+    public function editCredential(int $id): void
+    {
+        $cred = Credential::findOrFail($id);
+        $this->editId = $cred->id;
+        $this->label = $cred->label;
+        $this->credentialType = $cred->type;
+        $this->provider = $cred->provider ?? '';
+        $this->domain = $cred->domain ?? '';
+        $this->username = $cred->username ?? '';
+        $this->password = '';
+        $this->notes = $cred->notes ?? '';
+        $this->dispatch('open-modal', id: 'credential-form');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('swal:confirm', event: 'delete-credential-' . $id, title: 'Hapus credential?', confirmText: 'Ya, hapus!');
+    }
+
+    public function resetForm(): void
+    {
+        $this->reset(['editId', 'label', 'credentialType', 'provider', 'domain', 'username', 'password', 'notes']);
+    }
 
     public function render()
     {

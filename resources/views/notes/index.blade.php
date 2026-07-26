@@ -28,7 +28,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse ($notes as $note)
-            <div onclick="Livewire.dispatch('open-modal', { id: 'note-edit-{{ $note->id }}' })"
+            <div wire:click="edit({{ $note->id }})"
                 class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover cursor-pointer group">
                 <div class="flex items-start justify-between mb-3">
                     <div class="flex items-center gap-2 min-w-0">
@@ -79,79 +79,7 @@
         </div>
     @endif
 
-    <x-modal id="note-form" title="Create Note">
-        <form wire:submit="save" class="space-y-4">
-            <x-input label="Title" name="title" placeholder="Note title..." wire:model="title" />
-            <div>
-                <label for="content" class="block text-sm font-semibold text-txt-primary mb-1.5">Content</label>
-                <textarea wire:model="content" id="content" rows="8"
-                    class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none resize-none"
-                    placeholder="Write your note..."></textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-                <select wire:model="category"
-                    class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
-                    <option value="">Select category</option>
-                    <option value="General">General</option>
-                    <option value="Important">Important</option>
-                    <option value="Idea">Idea</option>
-                    <option value="Tutorial">Tutorial</option>
-                    <option value="Todo">Todo</option>
-                </select>
-                <label class="flex items-center gap-3 px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium cursor-pointer">
-                    <input type="checkbox" wire:model="is_pinned" class="w-4 h-4 accent-primary">
-                    <span><i class="bx bx-pin mr-1"></i> Pin note</span>
-                </label>
-            </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button type="button" onclick="Livewire.dispatch('close-modal', { id: 'note-form' })"
-                    class="px-6 py-3 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
-                    Cancel
-                </button>
-                <button type="submit"
-                    class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
-                    Save
-                </button>
-            </div>
-        </form>
+    <x-modal id="note-form" title="Create / Edit Note">
+        @livewire('note-editor')
     </x-modal>
-
-    @foreach ($notes as $note)
-        <x-modal id="note-edit-{{ $note->id }}" title="Edit Note">
-            <form wire:submit="update({{ $note->id }})" class="space-y-4">
-                <x-input label="Title" name="edit_title" placeholder="Note title..." wire:model="edit_title" />
-                <div>
-                    <label for="edit_content_{{ $note->id }}" class="block text-sm font-semibold text-txt-primary mb-1.5">Content</label>
-                    <textarea wire:model="edit_content" id="edit_content_{{ $note->id }}" rows="8"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none resize-none"
-                        placeholder="Write your note..."></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <select wire:model="edit_category"
-                        class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
-                        <option value="">Select category</option>
-                        <option value="General">General</option>
-                        <option value="Important">Important</option>
-                        <option value="Idea">Idea</option>
-                        <option value="Tutorial">Tutorial</option>
-                        <option value="Todo">Todo</option>
-                    </select>
-                    <label class="flex items-center gap-3 px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium cursor-pointer">
-                        <input type="checkbox" wire:model="edit_is_pinned" class="w-4 h-4 accent-primary">
-                        <span><i class="bx bx-pin mr-1"></i> Pin note</span>
-                    </label>
-                </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="Livewire.dispatch('close-modal', { id: 'note-edit-{{ $note->id }}' })"
-                        class="px-6 py-3 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                        class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
-                        Update
-                    </button>
-                </div>
-            </form>
-        </x-modal>
-    @endforeach
 @endsection

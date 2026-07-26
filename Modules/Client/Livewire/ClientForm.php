@@ -2,7 +2,6 @@
 
 namespace Modules\Client\Livewire;
 
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Modules\Client\Models\Client;
 use Modules\Client\Requests\ClientRequest;
@@ -23,22 +22,28 @@ class ClientForm extends Component
 
     public bool $isEdit = false;
 
+    protected $listeners = ['editClient' => 'loadClient'];
+
     public function mount(?int $id = null): void
     {
         if ($id) {
-            $this->client = Client::findOrFail($id);
-            $this->authorize('update', $this->client);
-            $this->isEdit = true;
-            $this->name = $this->client->name;
-            $this->email = $this->client->email ?? '';
-            $this->phone = $this->client->phone ?? '';
-            $this->whatsapp = $this->client->whatsapp ?? '';
-            $this->company = $this->client->company ?? '';
-            $this->address = $this->client->address ?? '';
-            $this->website = $this->client->website ?? '';
-            $this->notes = $this->client->notes ?? '';
-            $this->status = $this->client->status;
+            $this->loadClient($id);
         }
+    }
+
+    public function loadClient(int $id): void
+    {
+        $this->client = Client::findOrFail($id);
+        $this->isEdit = true;
+        $this->name = $this->client->name;
+        $this->email = $this->client->email ?? '';
+        $this->phone = $this->client->phone ?? '';
+        $this->whatsapp = $this->client->whatsapp ?? '';
+        $this->company = $this->client->company ?? '';
+        $this->address = $this->client->address ?? '';
+        $this->website = $this->client->website ?? '';
+        $this->notes = $this->client->notes ?? '';
+        $this->status = $this->client->status;
     }
 
     public function save(): void
@@ -57,11 +62,11 @@ class ClientForm extends Component
         $action = $this->isEdit ? 'updated' : 'created';
         $this->dispatch('swal:success', title: 'Client ' . $action, text: "Client has been {$action} successfully.");
 
-        $this->redirect(route('clients.index'), navigate: true);
+        $this->redirect(route('clients.index'));
     }
 
     public function render()
     {
-        return view('client::livewire.client-form');
+        return view('livewire.client-form');
     }
 }

@@ -1,11 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\Ideas\Livewire;
 
-use Illuminate\Contracts\View\View;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,13 +12,9 @@ class IdeaList extends Component
     use WithPagination;
 
     public string $search = '';
-
     public string $statusFilter = '';
-
     public string $platformFilter = '';
-
     public string $sortField = 'created_at';
-
     public string $sortDirection = 'desc';
 
     protected $queryString = [
@@ -49,10 +41,13 @@ class IdeaList extends Component
     }
 
     #[Computed]
-    public function ideas(): LengthAwarePaginator
+    public function ideas()
     {
-        return AppIdea::query()
-            ->where('user_id', auth()->id())
+        $allowedSorts = ['name', 'status', 'priority', 'platform', 'created_at'];
+        $sortField = in_array($this->sortField, $allowedSorts) ? $this->sortField : 'created_at';
+        $sortDirection = $this->sortDirection === 'asc' ? 'asc' : 'desc';
+
+        return AppIdea::where('user_id', auth()->id())
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', "%{$this->search}%")
@@ -60,22 +55,30 @@ class IdeaList extends Component
                         ->orWhere('description', 'like', "%{$this->search}%");
                 });
             })
-            ->when($this->statusFilter, fn ($query) => $query->where('status', $this->statusFilter))
-            ->when($this->platformFilter, fn ($query) => $query->where('platform', $this->platformFilter))
-            ->orderBy($this->sortField, $this->sortDirection)
+            ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
+            ->when($this->platformFilter, fn ($q) => $q->where('platform', $this->platformFilter))
+            ->orderBy($sortField, $sortDirection)
             ->paginate(12);
     }
 
     public function delete(int $id): void
     {
-        $idea = AppIdea::where('user_id', auth()->id())->findOrFail($id);
-        $idea->delete();
+        AppIdea::where('user_id', auth()->id())->findOrFail($id)->delete();
+        $this->dispatch('swal:success', title: 'Idea berhasil dihapus');
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('ideas::livewire.idea-list', [
+        $stats = [
+            'total' => AppIdea::where('user_id', auth()->id())->count(),
+            'draft' => AppIdea::where('user_id', auth()->id())->where('status', 'draft')->count(),
+            'development' => AppIdea::where('user_id', auth()->id())->where('status', 'development')->count(),
+            'archived' => AppIdea::where('user_id', auth()->id())->where('status', 'archived')->count(),
+        ];
+
+        return view('ideas.index', [
             'ideas' => $this->ideas,
+            'stats' => $stats,
         ]);
     }
 }

@@ -36,8 +36,8 @@
             <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
                 <div class="flex items-start gap-4 mb-4">
                     <div class="w-12 h-12 bg-primary/10 rounded-button flex items-center justify-center flex-shrink-0">
-                        @if ($bookmark->logo)
-                            <img src="{{ $bookmark->logo }}" alt="{{ $bookmark->title }}" class="w-7 h-7 object-contain">
+                        @if ($bookmark->logo_url)
+                            <img src="{{ $bookmark->logo_url }}" alt="{{ $bookmark->title }}" class="w-7 h-7 object-contain">
                         @else
                             <i class="bx bx-link-alt text-primary text-[24px]"></i>
                         @endif
@@ -111,7 +111,7 @@
                     placeholder="Short description..."></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
-                <select wire:model="category"
+                <select wire:model="bookmarkCategory"
                     class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
                     <option value="">Select category</option>
                     <option value="Documentation">Documentation</option>
@@ -121,7 +121,7 @@
                     <option value="Resource">Resource</option>
                     <option value="Other">Other</option>
                 </select>
-                <x-input label="Logo URL (optional)" name="logo" placeholder="https://example.com/icon.png" wire:model="logo" />
+                <x-input label="Logo URL (optional)" name="logo_url" placeholder="https://example.com/icon.png" wire:model="logo_url" />
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" onclick="Livewire.dispatch('close-modal', { id: 'bookmark-form' })"
@@ -147,7 +147,7 @@
                     placeholder="Short description..."></textarea>
             </div>
             <div class="grid grid-cols-2 gap-4">
-                <select wire:model="edit_category"
+                <select wire:model="bookmarkCategory"
                     class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
                     <option value="">Select category</option>
                     <option value="Documentation">Documentation</option>
@@ -157,7 +157,7 @@
                     <option value="Resource">Resource</option>
                     <option value="Other">Other</option>
                 </select>
-                <x-input label="Logo URL (optional)" name="edit_logo" placeholder="https://example.com/icon.png" wire:model="edit_logo" />
+                <x-input label="Logo URL (optional)" name="logo_url" placeholder="https://example.com/icon.png" wire:model="logo_url" />
             </div>
             <div class="flex justify-end gap-3 pt-2">
                 <button type="button" onclick="Livewire.dispatch('close-modal', { id: 'bookmark-edit' })"

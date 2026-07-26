@@ -115,6 +115,6 @@ class NoteEditor extends Component
 
     public function render()
     {
-        return view('notes.editor');
+        return view('livewire.note-editor');
     }
 }

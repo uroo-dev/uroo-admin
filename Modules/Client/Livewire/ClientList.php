@@ -55,12 +55,32 @@ class ClientList extends Component
             'status' => $client->status === 'active' ? 'inactive' : 'active',
         ]);
 
-        $this->dispatch('swal:success', title: 'Status Updated', text: "Client is now {$client->status}.");
+        $this->dispatch('swal:success', title: 'Status Updated', text: "Client is now {$client->fresh()->status}.");
+    }
+
+    public function edit(int $id): void
+    {
+        $this->dispatch('open-modal', id: 'client-form');
+        $this->dispatch('editClient', id: $id);
+    }
+
+    public function view(int $id): void
+    {
+        $this->dispatch('open-modal', id: 'client-detail');
+        $this->dispatch('view-client', id: $id);
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('swal:confirm', event: 'delete-client-' . $id, title: 'Hapus client?', confirmText: 'Ya, hapus!');
     }
 
     public function render()
     {
         $stats = app(ClientService::class)->getStats();
-        return view('clients.index', compact('stats'));
+        return view('clients.index', [
+            'clients' => $this->clients,
+            'stats' => $stats,
+        ]);
     }
 }

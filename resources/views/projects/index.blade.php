@@ -12,7 +12,7 @@
                     <i class="bx bx-folder text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.totalProjects ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['total'] ?? 0 }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Total Projects</p>
                 </div>
             </div>
@@ -24,7 +24,7 @@
                     <i class="bx bx-code-alt text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.developmentProjects ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['development'] ?? 0 }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Development</p>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                     <i class="bx bx-check-double text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.completedProjects ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['completed'] ?? 0 }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Completed</p>
                 </div>
             </div>
@@ -48,7 +48,7 @@
                     <i class="bx bx-archive text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold" x-text="$wire.archivedProjects ?? 0">0</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['archived'] ?? 0 }}</p>
                     <p class="text-sm font-medium text-txt-secondary">Archived</p>
                 </div>
             </div>
@@ -155,7 +155,7 @@
         @endforelse
     </div>
 
-    @if (method_exists($projects ?? [], 'links'))
+    @if (is_object($projects) && method_exists($projects, 'links'))
         <div class="mt-8">
             {{ $projects->links() }}
         </div>
@@ -164,21 +164,21 @@
     {{-- Modal Form --}}
     <x-modal id="project-form" title="Project Form" maxWidth="max-w-2xl">
         <form wire:submit="save" class="space-y-5">
-            <x-input label="Project Name" name="name" placeholder="Project name" wire:model="form.name" />
+            <x-input label="Project Name" name="name" placeholder="Project name" wire:model="name" />
 
             <div class="space-y-1.5">
                 <label class="block text-sm font-semibold text-txt-primary">Description</label>
-                <textarea wire:model="form.description" rows="3" placeholder="Project description..."
+                <textarea wire:model="description" rows="3" placeholder="Project description..."
                     class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors resize-none"></textarea>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div class="space-y-1.5">
                     <label class="block text-sm font-semibold text-txt-primary">Client</label>
-                    <select wire:model="form.client_id"
+                    <select wire:model="client_id"
                         class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
                         <option value="">Select Client</option>
-                        @foreach ($clients ?? [] as $client)
+                        @foreach ($clients as $client)
                             <option value="{{ $client->id }}">{{ $client->name }}</option>
                         @endforeach
                     </select>
@@ -186,7 +186,7 @@
 
                 <div class="space-y-1.5">
                     <label class="block text-sm font-semibold text-txt-primary">Category</label>
-                    <select wire:model="form.category"
+                    <select wire:model="categoryField"
                         class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
                         <option value="">Select Category</option>
                         <option value="web">Web</option>
@@ -202,7 +202,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div class="space-y-1.5">
                     <label class="block text-sm font-semibold text-txt-primary">Status</label>
-                    <select wire:model="form.status"
+                    <select wire:model="statusField"
                         class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
                         <option value="development">Development</option>
                         <option value="testing">Testing</option>
@@ -212,23 +212,20 @@
                     </select>
                 </div>
 
-                <x-input label="Progress (%)" name="progress" type="number" min="0" max="100" wire:model="form.progress" />
+                <x-input label="Progress (%)" name="progress" type="number" min="0" max="100" wire:model="progress" />
             </div>
 
             {{-- Tech Stack --}}
             <div x-data="{
-                techStack: @entangle('form.tech_stack'),
                 newTech: '',
                 addTech() {
-                    if (this.newTech.trim() && !this.techStack.includes(this.newTech.trim())) {
-                        this.techStack.push(this.newTech.trim());
-                        $wire.set('form.tech_stack', this.techStack);
+                    if (this.newTech.trim()) {
+                        $wire.addTech(this.newTech.trim());
                         this.newTech = '';
                     }
                 },
                 removeTech(index) {
-                    this.techStack.splice(index, 1);
-                    $wire.set('form.tech_stack', this.techStack);
+                    $wire.removeTech(index);
                 }
             }">
                 <label class="block text-sm font-semibold text-txt-primary mb-2">Tech Stack</label>
@@ -240,14 +237,14 @@
                     </x-button>
                 </div>
                 <div class="flex flex-wrap gap-2">
-                    <template x-for="(tech, index) in techStack" :key="index">
-                        <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold border-2 border-border-dark rounded-full bg-primary/10">
-                            <span x-text="tech"></span>
-                            <button type="button" @click="removeTech(index)" class="text-danger hover:text-red-700">
+                    @foreach ($techStack as $index => $tech)
+                        <span wire:key="tech-{{ $index }}" class="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold border-2 border-border-dark rounded-full bg-primary/10">
+                            <span>{{ $tech }}</span>
+                            <button type="button" wire:click="removeTech({{ $index }})" class="text-danger hover:text-red-700">
                                 <i class="bx bx-x"></i>
                             </button>
                         </span>
-                    </template>
+                    @endforeach
                 </div>
             </div>
 

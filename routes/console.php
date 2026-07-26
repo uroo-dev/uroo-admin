@@ -6,3 +6,9 @@ use Illuminate\Support\Facades\Artisan;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+Artisan::command('github:sync {user_id?}', function () {
+    $this->call(\Modules\GitHub\Console\SyncGitHub::class, [
+        'user_id' => $this->argument('user_id'),
+    ]);
+})->purpose('Sync repositories and commits from GitHub');

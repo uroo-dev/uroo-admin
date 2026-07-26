@@ -1,11 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\Subscription\Livewire;
 
-use Illuminate\Contracts\View\View;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,7 +13,6 @@ class SubscriptionList extends Component
     use WithPagination;
 
     public string $statusFilter = '';
-
     public string $categoryFilter = '';
 
     public SubscriptionService $service;
@@ -34,39 +29,31 @@ class SubscriptionList extends Component
 
     public function togglePayment(int $id): void
     {
-        $subscription = Subscription::where('user_id', auth()->id())->findOrFail($id);
-        $subscription->update([
-            'payment_status' => $subscription->payment_status === 'paid' ? 'unpaid' : 'paid',
-        ]);
+        $sub = Subscription::where('user_id', auth()->id())->findOrFail($id);
+        $sub->update(['payment_status' => $sub->payment_status === 'paid' ? 'unpaid' : 'paid']);
     }
 
     public function toggleActive(int $id): void
     {
-        $subscription = Subscription::where('user_id', auth()->id())->findOrFail($id);
-        $subscription->update(['is_active' => ! $subscription->is_active]);
+        $sub = Subscription::where('user_id', auth()->id())->findOrFail($id);
+        $sub->update(['is_active' => !$sub->is_active]);
     }
 
     public function delete(int $id): void
     {
         Subscription::where('user_id', auth()->id())->findOrFail($id)->delete();
+        $this->dispatch('swal:success', title: 'Langganan dihapus');
     }
 
-    public function updatingStatusFilter(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingCategoryFilter(): void
-    {
-        $this->resetPage();
-    }
+    public function updatingStatusFilter(): void { $this->resetPage(); }
+    public function updatingCategoryFilter(): void { $this->resetPage(); }
 
     #[Computed]
-    public function subscriptions(): LengthAwarePaginator
+    public function subscriptions()
     {
         return Subscription::where('user_id', auth()->id())
-            ->when($this->statusFilter, fn ($query) => $query->where('payment_status', $this->statusFilter))
-            ->when($this->categoryFilter, fn ($query) => $query->where('category', $this->categoryFilter))
+            ->when($this->statusFilter, fn ($q) => $q->where('payment_status', $this->statusFilter))
+            ->when($this->categoryFilter, fn ($q) => $q->where('category', $this->categoryFilter))
             ->orderBy('due_date', 'asc')
             ->paginate(15);
     }
@@ -77,11 +64,17 @@ class SubscriptionList extends Component
         return $this->service->getStats(auth()->id());
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('subscription::livewire.subscription-list', [
+        $categories = Subscription::where('user_id', auth()->id())
+            ->whereNotNull('category')
+            ->distinct('category')
+            ->pluck('category');
+
+        return view('subscriptions.index', [
             'subscriptions' => $this->subscriptions,
             'stats' => $this->stats,
+            'categories' => $categories,
         ]);
     }
 }

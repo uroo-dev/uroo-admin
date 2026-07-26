@@ -39,6 +39,7 @@ class ProjectService
         $sortDirection = $sortDirection === 'asc' ? 'asc' : 'desc';
 
         return Project::where('user_id', Auth::id())
+            ->with('client:id,name')
             ->when($search, fn ($q) => $q->whereAny([
                 'name', 'description', 'category', 'platform',
             ], 'like', "%{$search}%"))

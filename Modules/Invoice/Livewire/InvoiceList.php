@@ -12,11 +12,15 @@ class InvoiceList extends Component
     use WithPagination;
 
     public string $search = '';
-    public string $status = '';
+    public string $statusFilter = '';
     public string $sortField = 'created_at';
     public string $sortDirection = 'desc';
 
-    protected $queryString = ['search', 'status', 'sortField', 'sortDirection'];
+    private const ALLOWED_SORT_FIELDS = [
+        'invoice_number', 'total', 'status', 'due_date', 'created_at',
+    ];
+
+    protected $queryString = ['search', 'statusFilter', 'sortField', 'sortDirection'];
 
     public function render()
     {
@@ -31,11 +35,15 @@ class InvoiceList extends Component
             });
         }
 
-        if ($this->status) {
-            $query->where('status', $this->status);
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
         }
 
-        $invoices = $query->orderBy($this->sortField, $this->sortDirection)
+        $sortField = in_array($this->sortField, self::ALLOWED_SORT_FIELDS, true)
+            ? $this->sortField
+            : 'created_at';
+
+        $invoices = $query->orderBy($sortField, $this->sortDirection)
             ->paginate(12);
 
         $stats = app(InvoiceService::class)->getStats();
@@ -48,6 +56,11 @@ class InvoiceList extends Component
         $this->resetPage();
     }
 
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
     public function sortBy(string $field): void
     {
         if ($this->sortField === $field) {
@@ -56,6 +69,26 @@ class InvoiceList extends Component
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
+    }
+
+    public function edit(int $id): void
+    {
+        $this->dispatch('editInvoice', id: $id);
+        $this->dispatch('open-modal', id: 'invoice-form');
+    }
+
+    public function downloadPdf(int $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $pdf = app(InvoiceService::class)->generatePdf($invoice);
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, "invoice-{$invoice->invoice_number}.pdf");
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('swal:confirm', event: 'delete-invoice-' . $id, title: 'Hapus invoice?', confirmText: 'Ya, hapus!');
     }
 
     public function markPaid(int $id): void

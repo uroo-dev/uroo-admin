@@ -1,39 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\BrainDump\Livewire;
 
-use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Modules\BrainDump\Models\BrainDump;
 
 class DumpList extends Component
 {
+    use WithPagination;
+
     public string $search = '';
-
     public string $newContent = '';
-
-    public Collection $dumps;
 
     public function mount(): void
     {
-        $this->loadDumps();
-    }
-
-    public function loadDumps(): void
-    {
-        $query = BrainDump::where('user_id', auth()->id())
-            ->active()
-            ->when($this->search, function ($q) {
-                $q->where('content', 'like', "%{$this->search}%");
-            });
-
-        $pinned = (clone $query)->pinned()->orderBy('updated_at', 'desc')->get();
-        $unpinned = (clone $query)->where('is_pinned', false)->orderBy('created_at', 'desc')->get();
-
-        $this->dumps = $pinned->merge($unpinned);
+        //
     }
 
     public function quickCreate(): void
@@ -50,39 +32,52 @@ class DumpList extends Component
         ]);
 
         $this->newContent = '';
-        $this->loadDumps();
+        $this->resetPage();
+        $this->dispatch('swal:success', title: 'Brain dump berhasil disimpan');
     }
 
     public function autoSave(string $content, int $dumpId): void
     {
         $dump = BrainDump::where('user_id', auth()->id())->findOrFail($dumpId);
         $dump->update(['content' => $content]);
-        $this->loadDumps();
     }
 
     public function togglePin(int $id): void
     {
         $dump = BrainDump::where('user_id', auth()->id())->findOrFail($id);
-        $dump->update(['is_pinned' => ! $dump->is_pinned]);
-        $this->loadDumps();
+        $dump->update(['is_pinned' => !$dump->is_pinned]);
     }
 
     public function archive(int $id): void
     {
-        $dump = BrainDump::where('user_id', auth()->id())->findOrFail($id);
-        $dump->update(['is_archived' => true]);
-        $this->loadDumps();
+        BrainDump::where('user_id', auth()->id())->findOrFail($id)->update(['is_archived' => true]);
+        $this->dispatch('swal:success', title: 'Brain dump diarsipkan');
+    }
+
+    public function delete(int $id): void
+    {
+        BrainDump::where('user_id', auth()->id())->findOrFail($id)->delete();
+        $this->dispatch('swal:success', title: 'Brain dump dihapus');
     }
 
     public function updatedSearch(): void
     {
-        $this->loadDumps();
+        $this->resetPage();
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('braindump::livewire.dump-list', [
-            'dumps' => $this->dumps,
-        ]);
+        $query = BrainDump::where('user_id', auth()->id())
+            ->where('is_archived', false);
+
+        if ($this->search) {
+            $query->where('content', 'like', "%{$this->search}%");
+        }
+
+        $dumps = $query->orderBy('is_pinned', 'desc')
+            ->orderBy('updated_at', 'desc')
+            ->paginate(30);
+
+        return view('livewire.dump-list', compact('dumps'));
     }
 }

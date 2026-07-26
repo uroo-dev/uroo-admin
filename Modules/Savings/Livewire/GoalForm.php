@@ -1,29 +1,19 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\Savings\Livewire;
 
-use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Modules\Savings\Models\SavingsGoal;
 
 class GoalForm extends Component
 {
     public ?SavingsGoal $goal = null;
-
     public string $name = '';
-
     public float $targetAmount = 0;
-
     public ?string $icon = null;
-
     public ?string $color = null;
-
     public ?string $deadline = null;
-
     public ?string $notes = null;
-
     public bool $isEditing = false;
 
     protected function rules(): array
@@ -74,11 +64,11 @@ class GoalForm extends Component
         }
 
         $this->dispatch('goal-saved');
-        $this->redirect(route('savings.index'));
+        $this->dispatch('swal:success', title: $this->isEditing ? 'Goal diperbarui' : 'Goal baru dibuat');
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('savings::livewire.goal-form');
+        return view('livewire.goal-form');
     }
 }

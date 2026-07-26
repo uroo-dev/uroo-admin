@@ -19,27 +19,27 @@ Route::middleware('auth')->group(function () {
     Route::get('/github', function () { return view('github.index'); })->name('github');
 
     Route::prefix('projects')->group(function () {
-        Route::get('/', function () { return view('projects.index'); })->name('projects');
+        Route::get('/', \Modules\Projects\Livewire\ProjectList::class)->name('projects');
     });
 
     Route::prefix('credentials')->group(function () {
-        Route::get('/', function () { return view('credentials.index'); })->name('credentials');
+        Route::get('/', \Modules\Credential\Livewire\CredentialList::class)->name('credentials');
     });
 
     Route::prefix('clients')->group(function () {
-        Route::get('/', function () { return view('clients.index'); })->name('clients');
+        Route::get('/', \Modules\Client\Livewire\ClientList::class)->name('clients');
     });
 
     Route::prefix('invoices')->group(function () {
-        Route::get('/', function () { return view('invoices.index'); })->name('invoices');
+        Route::get('/', \Modules\Invoice\Livewire\InvoiceList::class)->name('invoices');
     });
 
     Route::prefix('notes')->group(function () {
-        Route::get('/', function () { return view('notes.index'); })->name('notes');
+        Route::get('/', \Modules\Notes\Livewire\NoteList::class)->name('notes');
     });
 
     Route::prefix('bookmarks')->group(function () {
-        Route::get('/', function () { return view('bookmarks.index'); })->name('bookmarks');
+        Route::get('/', \Modules\Bookmark\Livewire\BookmarkList::class)->name('bookmarks');
     });
 
     Route::prefix('quality-control')->group(function () {
@@ -47,7 +47,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('ideas')->group(function () {
-        Route::get('/', function () { return view('ideas.index'); })->name('ideas');
+        Route::get('/', \Modules\Ideas\Livewire\IdeaList::class)->name('ideas');
     });
 
     Route::prefix('brain-dump')->group(function () {
@@ -55,10 +55,10 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('savings')->group(function () {
-        Route::get('/', function () { return view('savings.index'); })->name('savings');
+        Route::get('/', \Modules\Savings\Livewire\GoalList::class)->name('savings');
     });
 
     Route::prefix('subscriptions')->group(function () {
-        Route::get('/', function () { return view('subscriptions.index'); })->name('subscriptions');
+        Route::get('/', \Modules\Subscription\Livewire\SubscriptionList::class)->name('subscriptions');
     });
 });

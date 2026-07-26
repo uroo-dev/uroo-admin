@@ -1,11 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\Savings\Livewire;
 
-use Illuminate\Contracts\View\View;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,11 +14,8 @@ class GoalList extends Component
     use WithPagination;
 
     public ?int $selectedGoalId = null;
-
     public string $depositAmount = '';
-
     public string $withdrawAmount = '';
-
     public string $transactionDescription = '';
 
     public SavingsService $service;
@@ -30,15 +23,6 @@ class GoalList extends Component
     public function boot(SavingsService $service): void
     {
         $this->service = $service;
-    }
-
-    #[Computed]
-    public function goals(): LengthAwarePaginator
-    {
-        return SavingsGoal::where('user_id', auth()->id())
-            ->orderBy('is_completed', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(9);
     }
 
     #[Computed]
@@ -55,9 +39,7 @@ class GoalList extends Component
 
     public function deposit(): void
     {
-        $this->validate([
-            'depositAmount' => 'required|numeric|min:0.01',
-        ]);
+        $this->validate(['depositAmount' => 'required|numeric|min:0.01']);
 
         $goal = SavingsGoal::where('user_id', auth()->id())->findOrFail($this->selectedGoalId);
         $amount = (float) $this->depositAmount;
@@ -76,19 +58,18 @@ class GoalList extends Component
         }
 
         $this->reset(['depositAmount', 'transactionDescription']);
+        $this->dispatch('swal:success', title: 'Deposit berhasil');
     }
 
     public function withdraw(): void
     {
-        $this->validate([
-            'withdrawAmount' => 'required|numeric|min:0.01',
-        ]);
+        $this->validate(['withdrawAmount' => 'required|numeric|min:0.01']);
 
         $goal = SavingsGoal::where('user_id', auth()->id())->findOrFail($this->selectedGoalId);
         $amount = (float) $this->withdrawAmount;
 
         if ($amount > $goal->current_amount) {
-            $this->addError('withdrawAmount', 'Insufficient balance.');
+            $this->addError('withdrawAmount', 'Saldo tidak mencukupi.');
             return;
         }
 
@@ -103,12 +84,19 @@ class GoalList extends Component
         $goal->update(['is_completed' => false]);
 
         $this->reset(['withdrawAmount', 'transactionDescription']);
+        $this->dispatch('swal:success', title: 'Withdraw berhasil');
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('savings::livewire.goal-list', [
-            'goals' => $this->goals,
+        $goals = SavingsGoal::where('user_id', auth()->id())
+            ->withCount('transactions')
+            ->orderBy('is_completed', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(9);
+
+        return view('savings.index', [
+            'goals' => $goals,
             'stats' => $this->stats,
         ]);
     }

@@ -1,10 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\Ideas\Livewire;
 
-use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Modules\Ideas\Models\AppIdea;
 
@@ -13,25 +10,15 @@ class IdeaForm extends Component
     public ?AppIdea $idea = null;
 
     public string $name = '';
-
     public ?string $tagline = null;
-
     public ?string $description = null;
-
     public string $features = '';
-
     public string $techStack = '';
-
     public string $platform = 'web';
-
     public string $status = 'draft';
-
     public string $priority = 'medium';
-
     public string $tags = '';
-
     public ?string $notes = null;
-
     public bool $isEditing = false;
 
     protected function rules(): array
@@ -94,11 +81,11 @@ class IdeaForm extends Component
         }
 
         $this->dispatch('idea-saved');
-        $this->redirect(route('ideas.index'));
+        $this->dispatch('swal:success', title: $this->isEditing ? 'Idea diperbarui' : 'Idea berhasil dibuat');
     }
 
-    public function render(): View
+    public function render()
     {
-        return view('ideas::livewire.idea-form');
+        return view('livewire.idea-form');
     }
 }

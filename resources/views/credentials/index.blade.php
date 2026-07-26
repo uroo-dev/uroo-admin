@@ -160,7 +160,7 @@
         <form wire:submit="save" class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
                 <x-input label="Label" name="label" placeholder="My Database" wire:model="label" />
-                <select wire:model="type"
+                <select wire:model="credentialType"
                     class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
                     <option value="">Pilih tipe</option>
                     @foreach ($types as $t)

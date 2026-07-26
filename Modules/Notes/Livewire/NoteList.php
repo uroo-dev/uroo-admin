@@ -60,6 +60,17 @@ class NoteList extends Component
         $note->update(['is_favorite' => !$note->is_favorite]);
     }
 
+    public function edit(int $id): void
+    {
+        $this->dispatch('editNote', id: $id);
+        $this->dispatch('open-modal', id: 'note-form');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('swal:confirm', event: 'delete-note-' . $id, title: 'Hapus note?', confirmText: 'Ya, hapus!');
+    }
+
     public function deleteNote(int $id): void
     {
         Note::findOrFail($id)->delete();

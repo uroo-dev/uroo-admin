@@ -15,7 +15,82 @@ class BookmarkList extends Component
     public string $viewMode = 'grid';
     public bool $showFavorites = false;
 
+    public ?int $editId = null;
+    public string $title = '';
+    public string $url = '';
+    public string $description = '';
+    public string $bookmarkCategory = '';
+    public string $logo_url = '';
+
     protected $queryString = ['search', 'category', 'viewMode', 'showFavorites'];
+
+    protected function rules(): array
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'url' => 'required|url|max:2048',
+            'description' => 'nullable|string',
+            'bookmarkCategory' => 'nullable|string|max:100',
+            'logo_url' => 'nullable|url|max:2048',
+        ];
+    }
+
+    public function save(): void
+    {
+        $this->validate();
+
+        Bookmark::create([
+            'user_id' => auth()->id(),
+            'title' => $this->title,
+            'url' => $this->url,
+            'description' => $this->description,
+            'category' => $this->bookmarkCategory,
+            'logo_url' => $this->logo_url,
+        ]);
+
+        $this->resetForm();
+        $this->dispatch('close-modal', id: 'bookmark-form');
+        $this->dispatch('swal:success', title: 'Bookmark ditambahkan');
+    }
+
+    public function edit(int $id): void
+    {
+        $bookmark = Bookmark::findOrFail($id);
+        $this->editId = $bookmark->id;
+        $this->title = $bookmark->title;
+        $this->url = $bookmark->url;
+        $this->description = $bookmark->description ?? '';
+        $this->bookmarkCategory = $bookmark->category ?? '';
+        $this->logo_url = $bookmark->logo_url ?? '';
+        $this->dispatch('open-modal', id: 'bookmark-edit');
+    }
+
+    public function update(): void
+    {
+        $this->validate();
+
+        Bookmark::findOrFail($this->editId)->update([
+            'title' => $this->title,
+            'url' => $this->url,
+            'description' => $this->description,
+            'category' => $this->bookmarkCategory,
+            'logo_url' => $this->logo_url,
+        ]);
+
+        $this->resetForm();
+        $this->dispatch('close-modal', id: 'bookmark-edit');
+        $this->dispatch('swal:success', title: 'Bookmark diperbarui');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->dispatch('swal:confirm', event: 'delete-bookmark-' . $id, title: 'Hapus bookmark?', confirmText: 'Ya, hapus!');
+    }
+
+    public function resetForm(): void
+    {
+        $this->reset(['editId', 'title', 'url', 'description', 'bookmarkCategory', 'logo_url']);
+    }
 
     public function render()
     {

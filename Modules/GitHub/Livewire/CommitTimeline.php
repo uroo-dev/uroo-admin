@@ -3,11 +3,14 @@
 namespace Modules\GitHub\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use Modules\GitHub\Models\Commit;
 use Modules\GitHub\Models\Repository;
 
 class CommitTimeline extends Component
 {
+    use WithPagination;
+
     public ?int $repositoryId = null;
     public string $branch = '';
 
@@ -18,7 +21,7 @@ class CommitTimeline extends Component
 
     public function render()
     {
-        $query = Commit::with('repository');
+        $query = Commit::with('repository:id,name');
 
         if ($this->repositoryId) {
             $query->where('repository_id', $this->repositoryId);
@@ -29,7 +32,7 @@ class CommitTimeline extends Component
         }
 
         $commits = $query->orderBy('committed_at', 'desc')->paginate(15);
-        $repositories = Repository::all();
+        $repositories = Repository::select('id', 'name')->orderBy('name')->get();
 
         return view('github.commits', compact('commits', 'repositories'));
     }

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('repository_id')->constrained()->cascadeOnDelete();
             $table->string('sha')->unique();
-            $table->string('message');
+            $table->text('message');
             $table->string('author_name');
             $table->string('author_email');
             $table->string('branch')->default('main');

@@ -1,10 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\QualityControl\Livewire;
 
-use Illuminate\Contracts\View\View;
 use Livewire\Component;
 use Modules\QualityControl\Models\QualityChecklist;
 use Modules\QualityControl\Services\QualityControlService;
@@ -12,7 +9,6 @@ use Modules\QualityControl\Services\QualityControlService;
 class ChecklistProgress extends Component
 {
     public QualityChecklist $checklist;
-
     public QualityControlService $service;
 
     public function boot(QualityControlService $service): void
@@ -20,21 +16,11 @@ class ChecklistProgress extends Component
         $this->service = $service;
     }
 
-    public function getProgressProperty(): int
+    public function render()
     {
-        return $this->service->getProgress($this->checklist->id);
-    }
-
-    public function getDeployReadinessProperty(): string
-    {
-        return $this->service->getDeployReadiness($this->checklist->id);
-    }
-
-    public function render(): View
-    {
-        return view('quality-control::livewire.checklist-progress', [
-            'progress' => $this->progress,
-            'readiness' => $this->deployReadiness,
+        return view('livewire.checklist-progress', [
+            'progress' => $this->service->getProgress($this->checklist->id),
+            'readiness' => $this->service->getDeployReadiness($this->checklist->id),
         ]);
     }
 }
