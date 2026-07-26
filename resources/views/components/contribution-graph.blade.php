@@ -12,6 +12,11 @@
         }
     }
 
+    $cellSize = 14;
+    $gap = 2;
+    $step = $cellSize + $gap;
+    $dayLabelWidth = 28;
+
     $monthSpans = [];
     $lastMonthKey = null;
     $startIdx = 0;
@@ -21,8 +26,8 @@
         if ($key !== $lastMonthKey && $lastMonthKey !== null) {
             $monthSpans[] = [
                 'label' => \Carbon\Carbon::parse($allDays[$startIdx]['date'])->format('M'),
-                'left' => $startIdx * 19,
-                'width' => ($i - $startIdx) * 19 - 3,
+                'left' => $startIdx * $step,
+                'width' => ($i - $startIdx) * $step - $gap,
             ];
             $startIdx = $i;
         }
@@ -31,13 +36,10 @@
     if ($lastMonthKey !== null) {
         $monthSpans[] = [
             'label' => \Carbon\Carbon::parse($allDays[$startIdx]['date'])->format('M'),
-            'left' => $startIdx * 19,
-            'width' => (count($allDays) - $startIdx) * 19 - 3,
+            'left' => $startIdx * $step,
+            'width' => (count($allDays) - $startIdx) * $step - $gap,
         ];
     }
-
-    $cellSize = 14;
-    $gap = 2;
 
     $ghColors = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
 @endphp
@@ -61,13 +63,16 @@
     <div class="overflow-x-auto">
         <div class="inline-flex flex-col min-w-[750px]">
             {{-- Month labels --}}
-            <div class="ml-[30px] mb-[2px]" style="position: relative; height: 13px;">
-                @foreach ($monthSpans as $m)
-                    <span class="text-[11px] font-semibold text-txt-secondary truncate"
-                          style="position: absolute; left: {{ $m['left'] }}px; width: {{ $m['width'] }}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        {{ $m['label'] }}
-                    </span>
-                @endforeach
+            <div class="flex mb-[2px]">
+                <div class="mr-[4px]" style="width: {{ $dayLabelWidth }}px; flex-shrink: 0;"></div>
+                <div style="position: relative; height: 13px; flex: 1;">
+                    @foreach ($monthSpans as $m)
+                        <span class="text-[11px] font-semibold text-txt-secondary truncate"
+                              style="position: absolute; left: {{ $m['left'] }}px; width: {{ $m['width'] }}px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ $m['label'] }}
+                        </span>
+                    @endforeach
+                </div>
             </div>
 
             {{-- Grid --}}
