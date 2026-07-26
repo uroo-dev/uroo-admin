@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use Illuminate\Support\Facades\Cache;
-use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\Repository;
@@ -61,23 +60,7 @@ class RepositoryList extends Component
         }
     }
 
-    public function confirmSync(): void
-    {
-        $this->dispatch('swal:confirm', [
-            'event' => 'sync-github',
-            'title' => 'Sync from GitHub?',
-            'text' => 'This will fetch latest repositories and commits from GitHub.',
-            'confirmText' => 'Sync Now',
-        ]);
-    }
-
-    public function updatingSearch(): void
-    {
-        $this->resetPage();
-    }
-
-    #[On('sync-github')]
-    public function syncFromGitHub(): void
+    public function sync(): void
     {
         $api = app(\App\Services\GitHubApiService::class);
 
@@ -90,6 +73,11 @@ class RepositoryList extends Component
         Cache::forget('github:languages:v2');
         Cache::forget('github:contributions');
         $this->dispatch('swal:success', title: 'Sync completed', text: "{$result['repositories']} repos, {$result['commits']} commits synced");
+        $this->resetPage();
+    }
+
+    public function updatingSearch(): void
+    {
         $this->resetPage();
     }
 }
