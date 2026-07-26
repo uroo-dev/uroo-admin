@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $stats = app(\Modules\GitHub\Services\GitHubService::class)->getStats();
+        $stats = app(\App\Services\GitHubService::class)->getStats();
     @endphp
 
     {{-- Stats --}}
@@ -54,15 +54,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    {{-- Sync Button --}}
-    <div class="flex justify-end mb-4">
-        <button wire:click="$dispatch('swal:confirm', { event: 'sync-github', title: 'Sync from GitHub?', text: 'This will fetch latest repositories and commits from GitHub.', confirmText: 'Sync Now' })"
-            class="px-5 py-2.5 bg-gray-800 text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 transition-all duration-200 ease-out flex items-center gap-2">
-            <i class="bx bx-sync text-lg"></i>
-            Sync from GitHub
-        </button>
     </div>
 
     {{-- Repository List --}}

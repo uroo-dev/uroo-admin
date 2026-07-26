@@ -61,6 +61,16 @@ class RepositoryList extends Component
         }
     }
 
+    public function confirmSync(): void
+    {
+        $this->dispatch('swal:confirm', [
+            'event' => 'sync-github',
+            'title' => 'Sync from GitHub?',
+            'text' => 'This will fetch latest repositories and commits from GitHub.',
+            'confirmText' => 'Sync Now',
+        ]);
+    }
+
     public function updatingSearch(): void
     {
         $this->resetPage();

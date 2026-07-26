@@ -88,11 +88,11 @@
 </head>
 <body class="font-sans bg-bgmain text-txt-primary antialiased">
 
-    <div class="flex h-screen overflow-hidden">
-        {{-- Sidebar --}}
-        <aside class="w-[280px] bg-surface border-r-4 border-border-dark flex-shrink-0 hidden lg:flex flex-col z-30"
-            x-data="{ sidebarOpen: true }"
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+    <div class="flex h-screen overflow-hidden"
+        x-data="{ sidebarOpen: false }"
+        @keydown.window.escape="sidebarOpen = false">
+        {{-- Desktop Sidebar --}}
+        <aside class="w-[280px] bg-surface border-r-4 border-border-dark flex-shrink-0 hidden lg:flex flex-col z-30">
             @include('layouts.sidebar')
         </aside>
 
@@ -105,6 +105,7 @@
             x-transition:leave="transition ease-in duration-200"
             x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0"
+            @click="sidebarOpen = false"
             style="display: none;">
         </div>
 
@@ -129,7 +130,7 @@
             </header>
 
             {{-- Page Content --}}
-            <main class="flex-1 overflow-y-auto p-8">
+            <main class="flex-1 overflow-y-auto p-4 sm:p-8">
                 <div class="max-w-[1440px] mx-auto">
                     @yield('content')
                 </div>

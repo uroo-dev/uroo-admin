@@ -17,17 +17,17 @@
         $menuItems = [
             ['route' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'bx bx-grid-alt'],
             ['route' => 'github', 'label' => 'GitHub Monitor', 'icon' => 'bx bxl-github'],
-            ['route' => 'projects', 'label' => 'Projects', 'icon' => 'bx bx-folder'],
-            ['route' => 'credentials', 'label' => 'Credential Vault', 'icon' => 'bx bx-lock-alt'],
-            ['route' => 'clients', 'label' => 'Clients', 'icon' => 'bx bx-user'],
-            ['route' => 'invoices', 'label' => 'Invoices', 'icon' => 'bx bx-receipt'],
-            ['route' => 'notes', 'label' => 'Developer Notes', 'icon' => 'bx bx-note'],
-            ['route' => 'bookmarks', 'label' => 'Bookmarks', 'icon' => 'bx bx-bookmark'],
+            ['route' => 'projects.index', 'label' => 'Projects', 'icon' => 'bx bx-folder'],
+            ['route' => 'credentials.index', 'label' => 'Credential Vault', 'icon' => 'bx bx-lock-alt'],
+            ['route' => 'clients.index', 'label' => 'Clients', 'icon' => 'bx bx-user'],
+            ['route' => 'invoices.index', 'label' => 'Invoices', 'icon' => 'bx bx-receipt'],
+            ['route' => 'notes.index', 'label' => 'Developer Notes', 'icon' => 'bx bx-note'],
+            ['route' => 'bookmarks.index', 'label' => 'Bookmarks', 'icon' => 'bx bx-bookmark'],
             ['route' => 'quality-control', 'label' => 'Quality Control', 'icon' => 'bx bx-check-shield'],
-            ['route' => 'ideas', 'label' => 'App Ideas', 'icon' => 'bx bx-bulb'],
-            ['route' => 'brain-dump', 'label' => 'Brain Dump', 'icon' => 'bx bx-cloud'],
-            ['route' => 'savings', 'label' => 'Savings Vault', 'icon' => 'bx bx-wallet'],
-            ['route' => 'subscriptions', 'label' => 'Subscriptions', 'icon' => 'bx bx-calendar'],
+            ['route' => 'ideas.index', 'label' => 'App Ideas', 'icon' => 'bx bx-bulb'],
+            ['route' => 'brain-dumps.index', 'label' => 'Brain Dump', 'icon' => 'bx bx-cloud'],
+            ['route' => 'savings.index', 'label' => 'Savings Vault', 'icon' => 'bx bx-wallet'],
+            ['route' => 'subscriptions.index', 'label' => 'Subscriptions', 'icon' => 'bx bx-calendar'],
         ];
         $currentRoute = Route::currentRouteName() ?? 'dashboard';
     @endphp

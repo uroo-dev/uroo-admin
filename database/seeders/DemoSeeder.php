@@ -6,21 +6,21 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Crypt;
-use Modules\Bookmark\Models\Bookmark;
-use Modules\BrainDump\Models\BrainDump;
-use Modules\Client\Models\Client;
-use Modules\Credential\Models\Credential;
-use Modules\GitHub\Models\Commit;
-use Modules\GitHub\Models\Repository;
-use Modules\Ideas\Models\AppIdea;
-use Modules\Invoice\Models\Invoice;
-use Modules\Notes\Models\Note;
-use Modules\Projects\Models\Project;
-use Modules\QualityControl\Models\ChecklistItem;
-use Modules\QualityControl\Models\QualityChecklist;
-use Modules\Savings\Models\SavingsGoal;
-use Modules\Savings\Models\SavingsTransaction;
-use Modules\Subscription\Models\Subscription;
+use App\Models\AppIdea;
+use App\Models\Bookmark;
+use App\Models\BrainDump;
+use App\Models\ChecklistItem;
+use App\Models\Client;
+use App\Models\Commit;
+use App\Models\Credential;
+use App\Models\Invoice;
+use App\Models\Note;
+use App\Models\Project;
+use App\Models\QualityChecklist;
+use App\Models\Repository;
+use App\Models\SavingsGoal;
+use App\Models\SavingsTransaction;
+use App\Models\Subscription;
 
 class DemoSeeder extends Seeder
 {
