@@ -14,14 +14,11 @@ class CredentialService
 
         $total = (clone $base)->count();
         $favorites = (clone $base)->where('is_favorite', true)->count();
-        $expiring = (clone $base)->whereNotNull('expires_at')
-            ->where('expires_at', '<=', now()->addDays(30))
-            ->count();
         $byType = (clone $base)->selectRaw('type, count(*) as count')
             ->groupBy('type')
             ->pluck('count', 'type');
 
-        return compact('total', 'favorites', 'expiring', 'byType');
+        return compact('total', 'favorites', 'byType');
     }
 
     public function search(string $query)

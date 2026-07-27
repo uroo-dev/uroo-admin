@@ -19,32 +19,26 @@
 @endphp
 
 {{-- Stats --}}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 bg-primary rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-lock-alt text-white text-[28px]"></i></div>
-            <div><p class="text-3xl font-extrabold">{{ $stats['total'] }}</p><p class="text-sm font-medium text-txt-secondary">Total</p></div>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-primary rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-lock-alt text-white text-[28px]"></i></div>
+                <div><p class="text-3xl font-extrabold">{{ $stats['total'] }}</p><p class="text-sm font-medium text-txt-secondary">Total</p></div>
+            </div>
+        </div>
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-[#22C55E] rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-star text-white text-[28px]"></i></div>
+                <div><p class="text-3xl font-extrabold">{{ $stats['favorites'] }}</p><p class="text-sm font-medium text-txt-secondary">Favorites</p></div>
+            </div>
+        </div>
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-purple-acc rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-category text-white text-[28px]"></i></div>
+                <div><p class="text-3xl font-extrabold">{{ count($stats['byType']) }}</p><p class="text-sm font-medium text-txt-secondary">Categories</p></div>
+            </div>
         </div>
     </div>
-    <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 bg-[#22C55E] rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-star text-white text-[28px]"></i></div>
-            <div><p class="text-3xl font-extrabold">{{ $stats['favorites'] }}</p><p class="text-sm font-medium text-txt-secondary">Favorites</p></div>
-        </div>
-    </div>
-    <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 bg-[#F59E0B] rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-time text-white text-[28px]"></i></div>
-            <div><p class="text-3xl font-extrabold">{{ $stats['expiring'] }}</p><p class="text-sm font-medium text-txt-secondary">Expiring Soon</p></div>
-        </div>
-    </div>
-    <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-        <div class="flex items-center gap-4">
-            <div class="w-14 h-14 bg-purple-acc rounded-button flex items-center justify-center shadow-hard flex-shrink-0"><i class="bx bx-category text-white text-[28px]"></i></div>
-            <div><p class="text-3xl font-extrabold">{{ count($stats['byType']) }}</p><p class="text-sm font-medium text-txt-secondary">Categories</p></div>
-        </div>
-    </div>
-</div>
 
 {{-- Toolbar --}}
 <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 mb-8">
