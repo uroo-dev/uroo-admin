@@ -21,6 +21,7 @@ class ClientController extends Controller
 
     public function store(ClientRequest $request)
     {
+        $this->authorize('create', Client::class);
         auth()->user()->clients()->create($request->validated());
         return redirect()->route('clients.index')->with('success', 'Client created successfully.');
     }

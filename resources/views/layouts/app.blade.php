@@ -141,55 +141,199 @@
     @livewireScripts
     @stack('scripts')
 
-    {{-- Global SweetAlert Flash --}}
+    {{-- ═══════════════════════════════════════════════════════════
+         Global SweetAlert2 — Neo Brutalism Design System
+         Sesuai DESIGN.MD: border hitam 4px, hard shadow, flat color,
+         font Inter, no blur, no gradient, radius card/modal/button
+    ═══════════════════════════════════════════════════════════ --}}
+    <style>
+        /* ── Base popup ─────────────────────────────────────── */
+        .swal-neo .swal2-popup {
+            font-family: 'Inter', sans-serif !important;
+            background: #FFFFFF !important;
+            border: 4px solid #111827 !important;
+            border-radius: 24px !important;
+            box-shadow: 8px 8px 0px #111827 !important;
+            padding: 2rem !important;
+        }
+
+        /* ── Toast popup ────────────────────────────────────── */
+        .swal-neo-toast .swal2-popup {
+            font-family: 'Inter', sans-serif !important;
+            background: #FFFFFF !important;
+            border: 4px solid #111827 !important;
+            border-radius: 20px !important;
+            box-shadow: 6px 6px 0px #111827 !important;
+            padding: 0.75rem 1.25rem !important;
+        }
+
+        /* ── Title ──────────────────────────────────────────── */
+        .swal-neo .swal2-title,
+        .swal-neo-toast .swal2-title {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 1.125rem !important;
+            color: #111827 !important;
+            padding: 0 !important;
+            margin-bottom: 0.25rem !important;
+        }
+
+        /* ── Content text ───────────────────────────────────── */
+        .swal-neo .swal2-html-container,
+        .swal-neo-toast .swal2-html-container {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 500 !important;
+            font-size: 0.875rem !important;
+            color: #6B7280 !important;
+            margin: 0.25rem 0 0 0 !important;
+        }
+
+        /* ── Icon colors (flat, no shadow) ──────────────────── */
+        .swal-neo .swal2-icon,
+        .swal-neo-toast .swal2-icon {
+            border-width: 3px !important;
+            box-shadow: none !important;
+        }
+        .swal-neo .swal2-icon.swal2-success,
+        .swal-neo-toast .swal2-icon.swal2-success {
+            border-color: #22C55E !important;
+            color: #22C55E !important;
+        }
+        .swal-neo .swal2-icon.swal2-success [class^='swal2-success-line'] {
+            background-color: #22C55E !important;
+        }
+        .swal-neo .swal2-icon.swal2-success .swal2-success-ring {
+            border-color: #22C55E4D !important;
+        }
+        .swal-neo .swal2-icon.swal2-error,
+        .swal-neo-toast .swal2-icon.swal2-error {
+            border-color: #EF4444 !important;
+            color: #EF4444 !important;
+        }
+        .swal-neo .swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+            background-color: #EF4444 !important;
+        }
+        .swal-neo .swal2-icon.swal2-warning,
+        .swal-neo-toast .swal2-icon.swal2-warning {
+            border-color: #F59E0B !important;
+            color: #F59E0B !important;
+        }
+        .swal-neo .swal2-icon.swal2-info {
+            border-color: #4F46E5 !important;
+            color: #4F46E5 !important;
+        }
+
+        /* ── Confirm button ─────────────────────────────────── */
+        .swal-neo .swal2-confirm {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.875rem !important;
+            border-radius: 18px !important;
+            border: 4px solid #111827 !important;
+            box-shadow: 4px 4px 0px #111827 !important;
+            padding: 0.625rem 1.5rem !important;
+            transition: transform 150ms ease-out, box-shadow 150ms ease-out !important;
+        }
+        .swal-neo .swal2-confirm:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 6px 6px 0px #111827 !important;
+        }
+        .swal-neo .swal2-confirm:active {
+            transform: translateY(2px) !important;
+            box-shadow: 2px 2px 0px #111827 !important;
+        }
+
+        /* ── Cancel button ──────────────────────────────────── */
+        .swal-neo .swal2-cancel {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 0.875rem !important;
+            border-radius: 18px !important;
+            border: 4px solid #111827 !important;
+            box-shadow: 4px 4px 0px #111827 !important;
+            padding: 0.625rem 1.5rem !important;
+            background: #FFFFFF !important;
+            color: #111827 !important;
+            transition: transform 150ms ease-out, box-shadow 150ms ease-out !important;
+        }
+        .swal-neo .swal2-cancel:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 6px 6px 0px #111827 !important;
+        }
+        .swal-neo .swal2-cancel:active {
+            transform: translateY(2px) !important;
+            box-shadow: 2px 2px 0px #111827 !important;
+        }
+
+        /* ── Actions area ───────────────────────────────────── */
+        .swal-neo .swal2-actions {
+            margin-top: 1.5rem !important;
+            gap: 0.75rem !important;
+        }
+
+        /* ── No backdrop blur ───────────────────────────────── */
+        .swal2-backdrop-show {
+            background: rgba(17,24,39,0.55) !important;
+            backdrop-filter: none !important;
+        }
+    </style>
+
     <script>
+        /* ── SweetAlert2 Global Mixins ───────────────────────────────
+           Pakai window.Swal_neo dan window.Swal_toast di seluruh app  */
+        window.SwalNeo = Swal.mixin({
+            customClass: { popup: 'swal-neo' },
+            background: '#FFFFFF',
+            color: '#111827',
+            buttonsStyling: true,
+            confirmButtonColor: '#4F46E5',
+            cancelButtonColor: '#FFFFFF',
+        });
+
+        window.SwalToast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            customClass: { popup: 'swal-neo-toast' },
+            background: '#FFFFFF',
+            color: '#111827',
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+        });
+
+        window.SwalDanger = Swal.mixin({
+            customClass: { popup: 'swal-neo' },
+            background: '#FFFFFF',
+            color: '#111827',
+            buttonsStyling: true,
+            confirmButtonColor: '#EF4444',
+            cancelButtonColor: '#FFFFFF',
+            showCancelButton: true,
+            cancelButtonText: 'Batal',
+        });
+
+        /* ── Livewire events ─────────────────────────────────────── */
         document.addEventListener('livewire:init', () => {
             Livewire.on('swal:success', (data) => {
-                Swal.fire({
+                SwalToast.fire({
                     icon: 'success',
                     title: data[0].title || 'Berhasil!',
                     text: data[0].text || '',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end',
-                    background: '#FFFFFF',
-                    customClass: {
-                        popup: 'border-4 border-border-dark rounded-card shadow-hard'
-                    }
                 });
             });
-
             Livewire.on('swal:error', (data) => {
-                Swal.fire({
+                SwalToast.fire({
                     icon: 'error',
                     title: data[0].title || 'Gagal!',
                     text: data[0].text || '',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: 'top-end',
-                    background: '#FFFFFF',
-                    customClass: {
-                        popup: 'border-4 border-border-dark rounded-card shadow-hard'
-                    }
                 });
             });
-
             Livewire.on('swal:confirm', (data) => {
-                Swal.fire({
+                SwalDanger.fire({
                     title: data[0].title || 'Apakah kamu yakin?',
                     text: data[0].text || '',
                     icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#EF4444',
-                    cancelButtonColor: '#6B7280',
                     confirmButtonText: data[0].confirmText || 'Ya, hapus!',
-                    cancelButtonText: 'Batal',
-                    background: '#FFFFFF',
-                    customClass: {
-                        popup: 'border-4 border-border-dark rounded-modal shadow-hard'
-                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
                         Livewire.dispatch(data[0].event || 'confirm:delete');

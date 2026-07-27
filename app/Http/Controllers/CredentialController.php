@@ -12,7 +12,7 @@ class CredentialController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Credential::query();
+        $query = Credential::where('user_id', auth()->id());
         $search = $request->input('search', '');
         $type = $request->input('type', '');
         $showFavorites = $request->boolean('favorites');
@@ -44,16 +44,30 @@ class CredentialController extends Controller
     public function store(CredentialRequest $request)
     {
         $data = $request->validated();
+
+        // If no password provided, generate a strong one
         $generatedPassword = null;
         if (empty($data['password'])) {
             $generatedPassword = Str::random(24);
             $data['password'] = $generatedPassword;
         }
-        auth()->user()->credentials()->create($data);
-        $msg = 'Credential created successfully.';
+
+        // Create credential — use explicit assignment to trigger the password mutator
+        // because 'password' is not in $fillable (only 'password_encrypted' is)
+        $credential = new Credential();
+        $credential->user_id     = auth()->id();
+        $credential->label       = $data['label'];
+        $credential->type        = $data['type'];
+        $credential->username    = $data['username'] ?? null;
+        $credential->password    = $data['password']; // triggers setPasswordAttribute
+        $credential->is_favorite = $data['is_favorite'] ?? false;
+        $credential->save();
+
+        $msg = 'Credential berhasil disimpan.';
         if ($generatedPassword) {
-            $msg .= " Generated password (save it): {$generatedPassword}";
+            $msg = 'Credential berhasil disimpan. Password yang di-generate: ' . $generatedPassword . ' — Simpan segera!';
         }
+
         return redirect()->route('credentials.index')->with('success', $msg);
     }
 
@@ -61,17 +75,30 @@ class CredentialController extends Controller
     {
         $this->authorize('update', $credential);
         $data = $request->validated();
-        if (empty($data['password'])) {
-            unset($data['password']);
+
+        $credential->label    = $data['label'];
+        $credential->type     = $data['type'];
+        $credential->username = $data['username'] ?? null;
+
+        // Only update password if provided
+        if (!empty($data['password'])) {
+            $credential->password = $data['password']; // triggers setPasswordAttribute
         }
-        $credential->update($data);
-        return redirect()->route('credentials.index')->with('success', 'Credential updated successfully.');
+
+        if (isset($data['is_favorite'])) {
+            $credential->is_favorite = $data['is_favorite'];
+        }
+
+        $credential->save();
+
+        return redirect()->route('credentials.index')->with('success', 'Credential berhasil diperbarui.');
     }
 
     public function destroy(Credential $credential)
     {
         $this->authorize('delete', $credential);
         $credential->delete();
-        return redirect()->route('credentials.index')->with('success', 'Credential deleted successfully.');
+
+        return redirect()->route('credentials.index')->with('success', 'Credential berhasil dihapus.');
     }
 }

@@ -28,7 +28,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Features — index route renders page with Livewire, CRUD handled by Controller
+    // Features — index routes render Blade views, CRUD handled by Controllers
     Route::resource('projects', ProjectController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('clients', ClientController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('credentials', CredentialController::class)->only(['index', 'store', 'update', 'destroy']);
