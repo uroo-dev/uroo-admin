@@ -22,7 +22,7 @@ class ClientRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:1000'],
             'website' => ['nullable', 'url', 'max:255'],
             'notes' => ['nullable', 'string', 'max:5000'],
-            'status' => ['required', 'in:active,inactive'],
+            'status' => ['required', 'in:deal,pending,canceled'],
         ];
     }
 
@@ -30,7 +30,7 @@ class ClientRequest extends FormRequest
     {
         return [
             'name.required' => 'Client name is required.',
-            'status.in' => 'Status must be active or inactive.',
+            'status.in' => 'Status must be deal, pending, or canceled.',
         ];
     }
 }

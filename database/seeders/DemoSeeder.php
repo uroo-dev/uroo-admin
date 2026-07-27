@@ -138,43 +138,37 @@ class DemoSeeder extends Seeder
 
     protected function seedClients(): void
     {
-        Client::create([
-            'user_id' => $this->userId,
-            'name' => 'PT Maju Jaya',
-            'email' => 'info@majujaya.com',
-            'phone' => '08123456789',
-            'whatsapp' => '628123456789',
-            'company' => 'PT Maju Jaya',
-            'address' => 'Jl. Sudirman No. 123, Jakarta',
-            'status' => 'active',
-        ]);
+        $clients = [
+            ['name' => 'Internasional Komputer Karanganyar', 'email' => 'info@internasional-karanganyar.com', 'phone' => '08123456789', 'whatsapp' => '628123456789', 'company' => 'Internasional Komputer', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Potensi project SANGAT TINGGI. Stok barang banyak, banyak tipe produk, harga berubah, service laptop/komputer, data pelanggan'],
+            ['name' => 'Service Laptop Karanganyar', 'email' => 'service@laptop-karanganyar.com', 'phone' => '08123456780', 'whatsapp' => '628123456780', 'company' => 'Service Laptop Karanganyar', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Service komputer. Sistem manajemen service laptop untuk mencatat pelanggan, kerusakan, biaya, dan status pengerjaan'],
+            ['name' => 'Happy Digital Printing', 'email' => 'info@happydigital-printing.com', 'phone' => '08123456781', 'whatsapp' => '628123456781', 'company' => 'Happy Digital Printing', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Usaha jasa sablon/digital printing. Pesanan masuk lewat WA, banyak revisi desain, sulit tracking order'],
+            ['name' => 'Ayam Goreng Cita Rasa Bengawan', 'email' => 'info@citarasa-bengawan.com', 'phone' => '08123456782', 'whatsapp' => '628123456782', 'company' => 'Ayam Goreng Cita Rasa Bengawan', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Kuliner. Sangat cocok untuk project POS. Kasir Digital Warung/Resto'],
+            ['name' => 'Kopi Moo', 'email' => 'info@kopimoo.com', 'phone' => '08123456783', 'whatsapp' => '628123456783', 'company' => 'Kopi Moo', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Cafe. Butuh menu digital, kasir, laporan. Paket Website + POS'],
+            ['name' => 'Intan Skin Care Dan Spa', 'email' => 'info@intan-skincare.com', 'phone' => '08123456784', 'whatsapp' => '628123456784', 'company' => 'Intan Skin Care Dan Spa', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Customer Management System. Data pelanggan, paket treatment, jadwal, riwayat transaksi'],
+            ['name' => 'Catering Krido', 'email' => 'info@catering-krido.com', 'phone' => '08123456785', 'whatsapp' => '628123456785', 'company' => 'Catering Krido', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Pesanan banyak, jadwal pengiriman, data pelanggan. Website + Order Management'],
+            ['name' => 'Auvia Mart Dan Batik', 'email' => 'info@auviamart.com', 'phone' => '08123456786', 'whatsapp' => '628123456786', 'company' => 'Auvia Mart Dan Batik', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Fashion/Batik. Inventory + Online Catalog. Produk, stok, foto produk, order'],
+            ['name' => 'Chocoloco', 'email' => 'info@chocoloco.com', 'phone' => '08123456787', 'whatsapp' => '628123456787', 'company' => 'Chocoloco', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Produk makanan. Website katalog, pemesanan online, database pelanggan'],
+            ['name' => 'Kedai99+', 'email' => 'info@kedai99.com', 'phone' => '08123456788', 'whatsapp' => '628123456788', 'company' => 'Kedai99+', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'POS sederhana'],
+            ['name' => 'Gubug Jampi', 'email' => 'info@gubugjampi.com', 'phone' => '08123456789', 'whatsapp' => '628123456789', 'company' => 'Gubug Jampi', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Produk herbal. Katalog produk, order, inventory'],
+            ['name' => 'Britania Bakery', 'email' => 'info@britania-bakery.com', 'phone' => '08123456790', 'whatsapp' => '628123456790', 'company' => 'Britania Bakery', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Bakery. Pre-order cake, kasir, customer database'],
+            ['name' => 'Pempek Bolon', 'email' => 'info@pempekbolon.com', 'phone' => '08123456791', 'whatsapp' => '628123456791', 'company' => 'Pempek Bolon', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Kuliner. POS + website menu'],
+            ['name' => 'Bebek Mrethel', 'email' => 'info@bebekmrethel.com', 'phone' => '08123456792', 'whatsapp' => '628123456792', 'company' => 'Bebek Mrethel', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Kuliner. Kasir, menu, laporan'],
+            ['name' => 'Jadah Tempe Mbah Timan', 'email' => 'info@jadah-tempe.com', 'phone' => '08123456793', 'whatsapp' => '628123456793', 'company' => 'Jadah Tempe Mbah Timan', 'address' => 'Jl. Raya Karanganyar, Karanganyar', 'notes' => 'Website branding + katalog'],
+        ];
 
-        Client::create([
-            'user_id' => $this->userId,
-            'name' => 'CV Kreatif Studio',
-            'email' => 'hello@kreatifstudio.com',
-            'phone' => '08765432100',
-            'whatsapp' => '628765432100',
-            'company' => 'CV Kreatif Studio',
-            'address' => 'Jl. Merdeka No. 45, Bandung',
-            'status' => 'active',
-        ]);
-
-        Client::create([
-            'user_id' => $this->userId,
-            'name' => 'Personal Project',
-            'email' => '',
-            'company' => '',
-            'status' => 'active',
-        ]);
-
-        Client::create([
-            'user_id' => $this->userId,
-            'name' => 'PT Digital Solusi',
-            'phone' => '08987654321',
-            'company' => 'PT Digital Solusi',
-            'status' => 'inactive',
-        ]);
+        foreach ($clients as $client) {
+            Client::create([
+                'user_id' => $this->userId,
+                'name' => $client['name'],
+                'email' => $client['email'],
+                'phone' => $client['phone'],
+                'whatsapp' => $client['whatsapp'],
+                'company' => $client['company'],
+                'address' => $client['address'],
+                'notes' => $client['notes'],
+                'status' => 'pending',
+            ]);
+        }
     }
 
     protected function seedInvoices(): void

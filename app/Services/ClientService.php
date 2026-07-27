@@ -14,8 +14,9 @@ class ClientService
 
         return [
             'total' => Client::where('user_id', $userId)->count(),
-            'active' => Client::where('user_id', $userId)->where('status', 'active')->count(),
-            'inactive' => Client::where('user_id', $userId)->where('status', 'inactive')->count(),
+            'deal' => Client::where('user_id', $userId)->where('status', 'deal')->count(),
+            'pending' => Client::where('user_id', $userId)->where('status', 'pending')->count(),
+            'canceled' => Client::where('user_id', $userId)->where('status', 'canceled')->count(),
         ];
     }
 

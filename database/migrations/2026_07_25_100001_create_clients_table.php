@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->string('website')->nullable();
             $table->text('notes')->nullable();
-            $table->string('status')->default('active');
+            $table->string('status')->default('pending');
             $table->softDeletes();
             $table->timestamps();
         });

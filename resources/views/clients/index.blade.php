@@ -9,7 +9,7 @@
     editMode: false,
     editingId: null,
     formAction: '{{ route('clients.store') }}',
-    formData: { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'active', notes:'' },
+    formData: { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'pending', notes:'' },
     editClient(el) {
         this.editMode = true;
         this.editingId = el.dataset.id;
@@ -51,7 +51,7 @@
         this.editMode = false;
         this.editingId = null;
         this.formAction = '{{ route('clients.store') }}';
-        this.formData = { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'active', notes:'' };
+        this.formData = { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'pending', notes:'' };
         this.editModalOpen = true;
     }
 }">
@@ -72,24 +72,36 @@
 
         <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-[#22C55E] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-user-check text-white text-[28px]"></i>
+                <div class="w-14 h-14 bg-[#F59E0B] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
+                    <i class="bx bx-handshake text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold">{{ $stats['active'] ?? 0 }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Active</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['deal'] ?? 0 }}</p>
+                    <p class="text-sm font-medium text-txt-secondary">Deal</p>
                 </div>
             </div>
         </div>
 
         <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-[#F59E0B] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-briefcase text-white text-[28px]"></i>
+                <div class="w-14 h-14 bg-secondary rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
+                    <i class="bx bx-clock text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold">{{ $stats['inactive'] ?? 0 }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Inactive</p>
+                    <p class="text-3xl font-extrabold">{{ $stats['pending'] ?? 0 }}</p>
+                    <p class="text-sm font-medium text-txt-secondary">Pending</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-danger rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
+                    <i class="bx bx-x-circle text-white text-[28px]"></i>
+                </div>
+                <div>
+                    <p class="text-3xl font-extrabold">{{ $stats['canceled'] ?? 0 }}</p>
+                    <p class="text-sm font-medium text-txt-secondary">Canceled</p>
                 </div>
             </div>
         </div>
@@ -100,8 +112,8 @@
                     <i class="bx bx-time-five text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold">{{ ($stats['active'] ?? 0) + ($stats['inactive'] ?? 0) }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Recent</p>
+                    <p class="text-3xl font-extrabold">{{ ($stats['deal'] ?? 0) + ($stats['pending'] ?? 0) }}</p>
+                    <p class="text-sm font-medium text-txt-secondary">Pipeline</p>
                 </div>
             </div>
         </div>
@@ -145,10 +157,12 @@
                             <td class="px-6 py-4 text-txt-secondary">{{ $client->phone }}</td>
                             <td class="px-6 py-4 text-txt-secondary">{{ $client->company }}</td>
                             <td class="px-6 py-4">
-                                @if ($client->status === 'active')
-                                    <x-badge variant="success">Active</x-badge>
+                                @if ($client->status === 'deal')
+                                    <x-badge variant="warning">Deal</x-badge>
+                                @elseif($client->status === 'pending')
+                                    <x-badge variant="info">Pending</x-badge>
                                 @else
-                                    <x-badge variant="danger">Inactive</x-badge>
+                                    <x-badge variant="danger">Canceled</x-badge>
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-right">
@@ -284,8 +298,9 @@
                     <label for="modal-status" class="block text-sm font-semibold text-txt-primary">Status</label>
                     <select id="modal-status" name="status" x-model="formData.status"
                         class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
+                        <option value="deal">Deal</option>
+                        <option value="pending">Pending</option>
+                        <option value="canceled">Canceled</option>
                     </select>
                 </div>
                 <div class="space-y-1.5">
