@@ -9,19 +9,16 @@
     editMode: false,
     editingId: null,
     formAction: '{{ route('clients.store') }}',
-    formData: { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'pending', notes:'' },
-    editClient(el) {
+    formData: { name:'', email:'', company:'', address:'', status:'pending', notes:'' },
+editClient(el) {
         this.editMode = true;
         this.editingId = el.dataset.id;
         this.formAction = '{{ route('clients.update', [':id']) }}'.replace(':id', el.dataset.id);
         this.formData = {
             name: el.dataset.name,
             email: el.dataset.email,
-            phone: el.dataset.phone,
-            whatsapp: el.dataset.whatsapp,
             company: el.dataset.company,
             address: el.dataset.address,
-            website: el.dataset.website,
             status: el.dataset.status,
             notes: el.dataset.notes
         };
@@ -51,7 +48,7 @@
         this.editMode = false;
         this.editingId = null;
         this.formAction = '{{ route('clients.store') }}';
-        this.formData = { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'pending', notes:'' };
+        this.formData = { name:'', email:'', company:'', address:'', status:'pending', notes:'' };
         this.editModalOpen = true;
     }
 }">
@@ -143,7 +140,6 @@
                     <tr class="border-b-4 border-border-dark bg-gray-50">
                         <th class="text-left px-6 py-4 font-extrabold">Name</th>
                         <th class="text-left px-6 py-4 font-extrabold">Email</th>
-                        <th class="text-left px-6 py-4 font-extrabold">Phone</th>
                         <th class="text-left px-6 py-4 font-extrabold">Company</th>
                         <th class="text-left px-6 py-4 font-extrabold">Status</th>
                         <th class="text-right px-6 py-4 font-extrabold">Actions</th>
@@ -152,9 +148,8 @@
                 <tbody>
                     @forelse ($clients as $client)
                         <tr class="border-b-2 border-gray-100 hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-semibold">{{ $client->name }}</td>
+<td class="px-6 py-4 font-semibold">{{ $client->name }}</td>
                             <td class="px-6 py-4 text-txt-secondary">{{ $client->email }}</td>
-                            <td class="px-6 py-4 text-txt-secondary">{{ $client->phone }}</td>
                             <td class="px-6 py-4 text-txt-secondary">{{ $client->company }}</td>
                             <td class="px-6 py-4">
                                 @if ($client->status === 'deal')
@@ -169,25 +164,22 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <button
                                         @click="editClient($el)"
-                                        class="p-2 text-txt-secondary hover:text-primary transition-colors"
+                                        class="p-2.5 text-txt-secondary hover:text-primary hover:bg-primary/10 rounded-button border-4 border-transparent hover:border-primary/30 transition-all duration-200 ease-out"
                                         data-id="{{ $client->id }}"
                                         data-name="{{ e($client->name) }}"
                                         data-email="{{ e($client->email ?? '') }}"
-                                        data-phone="{{ e($client->phone ?? '') }}"
-                                        data-whatsapp="{{ e($client->whatsapp ?? '') }}"
                                         data-company="{{ e($client->company ?? '') }}"
                                         data-address="{{ e($client->address ?? '') }}"
-                                        data-website="{{ e($client->website ?? '') }}"
                                         data-status="{{ $client->status }}"
                                         data-notes="{{ e($client->notes ?? '') }}"
                                     >
-                                        <i class="bx bx-edit text-base"></i>
+                                        <i class="bx bx-edit text-lg"></i>
                                     </button>
                                     <form id="delete-form-{{ $client->id }}" action="{{ route('clients.destroy', $client) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" @click="deleteClient('delete-form-{{ $client->id }}')" class="p-2 text-txt-secondary hover:text-danger transition-colors">
-                                            <i class="bx bx-trash text-base"></i>
+                                        @csrf @method('DELETE')
+                                        <button type="button" @click="deleteClient('delete-form-{{ $client->id }}')"
+                                            class="p-2.5 text-txt-secondary hover:text-danger hover:bg-danger/10 rounded-button border-4 border-transparent hover:border-danger/30 transition-all duration-200 ease-out">
+                                            <i class="bx bx-trash text-lg"></i>
                                         </button>
                                     </form>
                                 </div>
@@ -195,7 +187,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
+                            <td colspan="5" class="px-6 py-12 text-center">
                                 <i class="bx bx-user text-5xl text-txt-secondary"></i>
                                 <p class="text-txt-secondary font-medium mt-3">No clients found</p>
                             </td>
@@ -204,8 +196,13 @@
                 </tbody>
             </table>
         </div>
-        {{ $clients->links() }}
     </div>
+
+    @if ($clients->hasPages())
+        <div class="mt-6">
+            {{ $clients->links() }}
+        </div>
+    @endif
 
     {{-- Modal Form --}}
     <div x-show="editModalOpen"
@@ -227,7 +224,7 @@
              x-transition:leave-start="scale-100 opacity-100"
              x-transition:leave-end="scale-95 opacity-0"
              @click.stop
-             class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-lg animate-scale-in">
+             class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-lg max-h-[85vh] overflow-y-auto animate-scale-in">
             <div class="flex items-center justify-between px-6 py-4 border-b-4 border-border-dark">
                 <h3 class="text-lg font-extrabold" x-text="editMode ? 'Edit Client' : 'Add Client'"></h3>
                 <button @click="editModalOpen = false" class="text-2xl text-txt-secondary hover:text-danger transition-colors">
@@ -262,38 +259,26 @@
                             placeholder="client@email.com">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="space-y-1.5">
-                        <label for="modal-phone" class="block text-sm font-semibold text-txt-primary">Phone</label>
-                        <input type="text" id="modal-phone" name="phone" x-model="formData.phone"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="08123456789">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label for="modal-whatsapp" class="block text-sm font-semibold text-txt-primary">WhatsApp</label>
-                        <input type="text" id="modal-whatsapp" name="whatsapp" x-model="formData.whatsapp"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="628123456789">
-                    </div>
-                </div>
+<div class="grid grid-cols-2 gap-4">
+                     <div class="space-y-1.5">
+                         <label for="modal-email" class="block text-sm font-semibold text-txt-primary">Email</label>
+                         <input type="email" id="modal-email" name="email" x-model="formData.email"
+                             class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
+                             placeholder="client@email.com">
+                     </div>
+                 </div>
                 <div class="space-y-1.5">
                     <label for="modal-company" class="block text-sm font-semibold text-txt-primary">Company</label>
                     <input type="text" id="modal-company" name="company" x-model="formData.company"
                         class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
                         placeholder="PT. Example">
                 </div>
-                <div class="space-y-1.5">
-                    <label for="modal-address" class="block text-sm font-semibold text-txt-primary">Address</label>
-                    <input type="text" id="modal-address" name="address" x-model="formData.address"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                        placeholder="Jl. Merdeka No. 1">
-                </div>
-                <div class="space-y-1.5">
-                    <label for="modal-website" class="block text-sm font-semibold text-txt-primary">Website</label>
-                    <input type="url" id="modal-website" name="website" x-model="formData.website"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                        placeholder="https://example.com">
-                </div>
+<div class="space-y-1.5">
+                     <label for="modal-address" class="block text-sm font-semibold text-txt-primary">Address</label>
+                     <input type="text" id="modal-address" name="address" x-model="formData.address"
+                         class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
+                         placeholder="Jl. Merdeka No. 1">
+                 </div>
                 <div class="space-y-1.5">
                     <label for="modal-status" class="block text-sm font-semibold text-txt-primary">Status</label>
                     <select id="modal-status" name="status" x-model="formData.status"
