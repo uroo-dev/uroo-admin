@@ -29,8 +29,6 @@ class CredentialService
         return Credential::where('user_id', Auth::id())
             ->where(function ($q) use ($query) {
                 $q->where('label', 'like', "%{$query}%")
-                  ->orWhere('provider', 'like', "%{$query}%")
-                  ->orWhere('domain', 'like', "%{$query}%")
                   ->orWhere('username', 'like', "%{$query}%");
             })
             ->orderBy('is_favorite', 'desc')

@@ -106,12 +106,8 @@ class DemoSeeder extends Seeder
         $cred->user_id = $this->userId;
         $cred->type = 'hosting';
         $cred->label = 'Production Server';
-        $cred->provider = 'DigitalOcean';
-        $cred->domain = 'uroo.dev';
-        $cred->host_ip = '159.89.123.45';
         $cred->username = 'root';
         $cred->password = 's3cur3P@ss!';
-        $cred->notes = 'Server utama untuk production';
         $cred->is_favorite = true;
         $cred->save();
 
@@ -119,20 +115,14 @@ class DemoSeeder extends Seeder
         $cred2->user_id = $this->userId;
         $cred2->type = 'database';
         $cred2->label = 'MySQL Production';
-        $cred2->provider = 'DigitalOcean';
-        $cred2->host_ip = '159.89.123.45';
         $cred2->username = 'admin_uroo';
         $cred2->password = 'db_P@ssw0rd!';
-        $cred2->database_name = 'uroo_production';
-        $cred2->database_user = 'admin_uroo';
-        $cred2->database_password = 'db_P@ssw0rd!';
         $cred2->save();
 
         $cred3 = new Credential();
         $cred3->user_id = $this->userId;
         $cred3->type = 'api_key';
         $cred3->label = 'OpenAI API';
-        $cred3->provider = 'OpenAI';
         $cred3->password = 'sk-proj-xxxxxxxxxxxx';
         $cred3->is_favorite = true;
         $cred3->save();
@@ -141,8 +131,6 @@ class DemoSeeder extends Seeder
         $cred4->user_id = $this->userId;
         $cred4->type = 'vps';
         $cred4->label = 'Staging Server';
-        $cred4->provider = 'Linode';
-        $cred4->host_ip = '172.105.67.89';
         $cred4->username = 'deploy';
         $cred4->password = 'st@g!ngP@ss';
         $cred4->save();
