@@ -115,6 +115,11 @@
 
             {{-- Actions --}}
             <div class="flex items-center gap-2 pt-3 border-t-4 border-border-dark mt-auto">
+                <button type="button"
+                    onclick="openViewModal({{ $credential->id }}, {{ json_encode($credential->label) }}, '{{ $credential->type }}', '{{ $credential->username ?? '' }}', {{ json_encode($credential->password) }})"
+                    class="px-3 py-2 text-txt-secondary hover:text-primary font-bold text-xs rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 active:translate-y-0.5 transition-all duration-200 ease-out" title="View">
+                    <i class="bx bx-show text-base"></i>
+                </button>
                 <form id="del-cred-{{ $credential->id }}" method="POST" action="{{ route('credentials.destroy', $credential) }}" class="inline">
                     @csrf @method('DELETE')
                     <button type="button" onclick="deleteCredential('del-cred-{{ $credential->id }}', {{ json_encode($credential->label) }})"
@@ -141,6 +146,58 @@
     <div class="mt-8">{{ $credentials->links() }}</div>
 @endif
 
+{{-- View Detail Modal --}}
+<div id="view-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeViewModal()">
+    <div class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-md animate-scale-in" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between px-6 py-4 border-b-4 border-border-dark">
+            <h3 id="view-modal-title" class="text-lg font-extrabold">Credential Detail</h3>
+            <button onclick="closeViewModal()" class="text-2xl text-txt-secondary hover:text-danger transition-colors"><i class="bx bx-x"></i></button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <p class="text-xs text-txt-secondary font-semibold mb-1">Label</p>
+                <div class="flex items-center gap-2">
+                    <span id="view-label" class="font-extrabold"></span>
+                    <button type="button" onclick="copyField('view-label')" class="text-txt-secondary hover:text-primary transition-colors" title="Copy">
+                        <i class="bx bx-copy text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs text-txt-secondary font-semibold mb-1">Type</p>
+                <div class="flex items-center gap-2">
+                    <span id="view-type" class="font-semibold"></span>
+                    <button type="button" onclick="copyField('view-type')" class="text-txt-secondary hover:text-primary transition-colors" title="Copy">
+                        <i class="bx bx-copy text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs text-txt-secondary font-semibold mb-1">Username / Email</p>
+                <div class="flex items-center gap-2">
+                    <span id="view-username" class="font-mono text-sm bg-bgmain px-2 py-0.5 rounded"></span>
+                    <button type="button" onclick="copyField('view-username')" class="text-txt-secondary hover:text-primary transition-colors" title="Copy">
+                        <i class="bx bx-copy text-sm"></i>
+                    </button>
+                </div>
+            </div>
+            <div>
+                <p class="text-xs text-txt-secondary font-semibold mb-1">Password</p>
+                <div class="flex items-center gap-2">
+                    <span id="view-password" class="font-mono text-sm bg-bgmain px-2 py-0.5 rounded tracking-wider"></span>
+                    <button type="button" onclick="copyField('view-password')" class="text-txt-secondary hover:text-primary transition-colors" title="Copy">
+                        <i class="bx bx-copy text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 px-6 pb-6">
+            <button type="button" onclick="closeViewModal()"
+                class="px-5 py-2.5 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">Close</button>
+        </div>
+    </div>
+</div>
+
 {{-- Add / Edit Modal --}}
 <div id="form-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onclick="if(event.target===this)closeFormModal()">
     <div class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-xl max-h-[90vh] overflow-y-auto animate-scale-in" onclick="event.stopPropagation()">
@@ -160,13 +217,8 @@
 
             <div>
                 <label class="block text-sm font-semibold text-txt-primary mb-1.5">Type <span class="text-red-500">*</span></label>
-                <select name="type" id="f-type" required
-                    class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
-                    <option value="">Select type</option>
-                    @foreach (App\Models\Credential::types() as $t)
-                        <option value="{{ $t }}">{{ ucfirst(str_replace('_', ' ', $t)) }}</option>
-                    @endforeach
-                </select>
+                <input type="text" name="type" id="f-type" required placeholder="e.g. hosting, vps, ssh, api_key, email"
+                    class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
                 <p class="text-xs text-txt-secondary mt-1">e.g. hosting, vps, ssh, database, cpanel, cloud, ftp, api_key, email</p>
             </div>
 
@@ -180,7 +232,11 @@
                 <label class="block text-sm font-semibold text-txt-primary mb-1.5">Password</label>
                 <div class="relative">
                     <input type="password" name="password" id="f-password" placeholder="Leave empty for auto-generated"
-                        class="w-full px-4 py-3 pr-11 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
+                        class="w-full px-4 py-3 pr-24 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
+                    <button type="button" onclick="generatePassword()"
+                        class="absolute right-16 top-1/2 -translate-y-1/2 text-txt-secondary hover:text-primary transition-colors" title="Generate strong password">
+                        <i class="bx bx-random text-lg"></i>
+                    </button>
                     <button type="button" onclick="toggleFieldPassword('f-password', 'f-pwd-eye')"
                         class="absolute right-3 top-1/2 -translate-y-1/2 text-txt-secondary hover:text-primary transition-colors">
                         <i id="f-pwd-eye" class="bx bx-show text-lg"></i>
@@ -220,13 +276,64 @@ function openEditModal(id, label, type, username) {
     document.getElementById('form-modal').classList.remove('hidden');
 }
 
+function openViewModal(id, label, type, username, password) {
+    document.getElementById('view-modal-title').textContent = 'View Credential';
+    document.getElementById('view-label').textContent = label || '-';
+    document.getElementById('view-type').textContent = type || '-';
+    document.getElementById('view-username').textContent = username || '-';
+    document.getElementById('view-password').textContent = password || '-';
+    document.getElementById('view-modal').classList.remove('hidden');
+}
+
+function closeViewModal() {
+    document.getElementById('view-modal').classList.add('hidden');
+}
+
+function generatePassword() {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+';
+    var pwd = '';
+    for (var i = 0; i < 24; i++) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('f-password').value = pwd;
+    Swal.fire({
+        icon: 'success',
+        title: 'Password Generated',
+        text: 'A 24-character strong password has been generated.',
+        timer: 2000,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top-end',
+        background: '#FFFFFF',
+        customClass: { popup: 'border-4 border-border-dark rounded-card shadow-hard' }
+    });
+}
+
+function copyField(elementId) {
+    var el = document.getElementById(elementId);
+    var text = el.textContent.trim();
+    navigator.clipboard.writeText(text).then(function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Copied!',
+            text: 'Copied to clipboard.',
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end',
+            background: '#FFFFFF',
+            customClass: { popup: 'border-4 border-border-dark rounded-card shadow-hard' }
+        });
+    });
+}
+
 function closeFormModal() {
     document.getElementById('form-modal').classList.add('hidden');
 }
 
 function toggleFieldPassword(inputId, eyeId) {
-    const input = document.getElementById(inputId);
-    const eye = document.getElementById(eyeId);
+    var input = document.getElementById(inputId);
+    var eye = document.getElementById(eyeId);
     if (input.type === 'password') {
         input.type = 'text';
         eye.className = eye.className.replace('bx-show', 'bx-hide');
