@@ -14,12 +14,13 @@ class ClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'company' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string', 'max:1000'],
-            'notes' => ['nullable', 'string', 'max:5000'],
-            'status' => ['required', 'in:deal,pending,canceled'],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['nullable', 'email', 'max:255'],
+            'whatsapp'  => ['nullable', 'string', 'max:20'],
+            'company'   => ['nullable', 'string', 'max:255'],
+            'address'   => ['nullable', 'string', 'max:1000'],
+            'notes'     => ['nullable', 'string', 'max:5000'],
+            'status'    => ['required', 'in:deal,pending,canceled'],
         ];
     }
 
