@@ -6,6 +6,7 @@ use App\Http\Requests\CredentialRequest;
 use App\Models\Credential;
 use App\Services\CredentialService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CredentialController extends Controller
 {
@@ -19,8 +20,7 @@ class CredentialController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('label', 'like', "%{$search}%")
-                  ->orWhere('provider', 'like', "%{$search}%")
-                  ->orWhere('domain', 'like', "%{$search}%");
+                  ->orWhere('username', 'like', "%{$search}%");
             });
         }
         if ($type) {
@@ -43,20 +43,27 @@ class CredentialController extends Controller
 
     public function store(CredentialRequest $request)
     {
-        auth()->user()->credentials()->create($request->validated());
-        return redirect()->route('credentials.index')->with('success', 'Credential created successfully.');
+        $data = $request->validated();
+        $generatedPassword = null;
+        if (empty($data['password'])) {
+            $generatedPassword = Str::random(24);
+            $data['password'] = $generatedPassword;
+        }
+        auth()->user()->credentials()->create($data);
+        $msg = 'Credential created successfully.';
+        if ($generatedPassword) {
+            $msg .= " Generated password (save it): {$generatedPassword}";
+        }
+        return redirect()->route('credentials.index')->with('success', $msg);
     }
 
     public function update(CredentialRequest $request, Credential $credential)
     {
         $this->authorize('update', $credential);
         $data = $request->validated();
-
-        // Don't overwrite existing password if field left blank
         if (empty($data['password'])) {
             unset($data['password']);
         }
-
         $credential->update($data);
         return redirect()->route('credentials.index')->with('success', 'Credential updated successfully.');
     }
