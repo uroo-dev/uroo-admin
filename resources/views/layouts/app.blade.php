@@ -273,7 +273,7 @@
 
         /* ── No backdrop blur ───────────────────────────────── */
         .swal2-backdrop-show {
-            background: rgba(17,24,39,0.55) !important;
+            background: transparent !important;
             backdrop-filter: none !important;
         }
     </style>
