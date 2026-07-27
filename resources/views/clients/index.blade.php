@@ -47,12 +47,12 @@
             }
         });
     },
-    resetForm() {
+        resetForm() {
         this.editMode = false;
         this.editingId = null;
         this.formAction = '{{ route('clients.store') }}';
         this.formData = { name:'', email:'', phone:'', whatsapp:'', company:'', address:'', website:'', status:'active', notes:'' };
-        this.editModalOpen = false;
+        this.editModalOpen = true;
     }
 }">
 
@@ -222,6 +222,15 @@
             </div>
             <form method="POST" :action="formAction" class="p-6 space-y-4">
                 @csrf
+                @if ($errors->any())
+                    <div class="bg-danger/10 border-4 border-danger rounded-card p-4 mb-4">
+                        <ul class="text-sm text-danger font-medium space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <template x-if="editMode">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
