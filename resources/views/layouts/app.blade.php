@@ -83,7 +83,6 @@
     {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @livewireStyles
     @stack('styles')
 </head>
 <body class="font-sans bg-bgmain text-txt-primary antialiased">
@@ -138,7 +137,6 @@
         </div>
     </div>
 
-    @livewireScripts
     @stack('scripts')
 
     {{-- ═══════════════════════════════════════════════════════════
@@ -312,35 +310,6 @@
             cancelButtonText: 'Batal',
         });
 
-        /* ── Livewire events ─────────────────────────────────────── */
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('swal:success', (data) => {
-                SwalToast.fire({
-                    icon: 'success',
-                    title: data[0].title || 'Berhasil!',
-                    text: data[0].text || '',
-                });
-            });
-            Livewire.on('swal:error', (data) => {
-                SwalToast.fire({
-                    icon: 'error',
-                    title: data[0].title || 'Gagal!',
-                    text: data[0].text || '',
-                });
-            });
-            Livewire.on('swal:confirm', (data) => {
-                SwalDanger.fire({
-                    title: data[0].title || 'Apakah kamu yakin?',
-                    text: data[0].text || '',
-                    icon: 'warning',
-                    confirmButtonText: data[0].confirmText || 'Ya, hapus!',
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Livewire.dispatch(data[0].event || 'confirm:delete');
-                    }
-                });
-            });
-        });
-    </script>
+        </script>
 </body>
 </html>

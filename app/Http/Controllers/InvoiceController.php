@@ -14,7 +14,10 @@ class InvoiceController extends Controller
         $query = Invoice::with(['client:id,name']);
         $search = $request->input('search', '');
         $statusFilter = $request->input('status', '');
-        $sortField = in_array($request->input('sort', 'created_at'), ['invoice_number', 'total', 'status', 'due_date', 'created_at']) ? $request->input('sort') : 'created_at';
+        $sortField = $request->input('sort', 'created_at');
+        if (!in_array($sortField, ['invoice_number', 'total', 'status', 'due_date', 'created_at'])) {
+            $sortField = 'created_at';
+        }
         $sortDirection = $request->input('direction', 'desc') === 'asc' ? 'asc' : 'desc';
 
         if ($search) {
