@@ -42,9 +42,24 @@ class InvoiceController extends Controller
         $data['invoice_number'] = $invoiceService->generateInvoiceNumber();
         $data['user_id'] = auth()->id();
         $data['paid_amount'] = (float) ($data['paid_amount'] ?? 0);
-        $totals = $invoiceService->calculateTotals($data['items'], (float)($data['tax_percent'] ?? 0), (float)($data['discount_percent'] ?? 0));
+
+        if (!empty($data['total_billing'])) {
+            $totals = [
+                'subtotal' => (float) $data['total_billing'],
+                'tax_percent' => 0,
+                'tax_amount' => 0,
+                'discount_percent' => 0,
+                'discount_amount' => 0,
+                'total' => (float) $data['total_billing'],
+            ];
+        } else {
+            $totals = $invoiceService->calculateTotals($data['items'] ?? [], (float)($data['tax_percent'] ?? 0), (float)($data['discount_percent'] ?? 0));
+        }
+
         $invoice = Invoice::create(array_merge($data, $totals));
-        $this->checkPaymentStatus($invoice);
+        if ($invoice->paid_amount > 0) {
+            $invoiceService->recordPayment($invoice, $invoice->paid_amount);
+        }
         return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
     }
 
@@ -53,21 +68,35 @@ class InvoiceController extends Controller
         $this->authorize('update', $invoice);
         $data = $request->validated();
         $data['paid_amount'] = (float) ($data['paid_amount'] ?? 0);
-        $totals = $invoiceService->calculateTotals($data['items'], (float)($data['tax_percent'] ?? 0), (float)($data['discount_percent'] ?? 0));
+
+        if (!empty($data['total_billing'])) {
+            $totals = [
+                'subtotal' => (float) $data['total_billing'],
+                'tax_percent' => 0,
+                'tax_amount' => 0,
+                'discount_percent' => 0,
+                'discount_amount' => 0,
+                'total' => (float) $data['total_billing'],
+            ];
+        } else {
+            $totals = $invoiceService->calculateTotals($data['items'] ?? [], (float)($data['tax_percent'] ?? 0), (float)($data['discount_percent'] ?? 0));
+        }
+
         $invoice->update(array_merge($data, $totals));
-        $this->checkPaymentStatus($invoice);
+        if ($data['paid_amount'] > 0) {
+            $invoiceService->recordPayment($invoice, $data['paid_amount']);
+        }
         return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
     }
 
-    public function updatePayment(Request $request, Invoice $invoice)
+    public function updatePayment(Request $request, Invoice $invoice, InvoiceService $invoiceService)
     {
         $this->authorize('update', $invoice);
         $request->validate([
             'paid_amount' => 'required|numeric|min:0',
         ]);
-        $invoice->paid_amount = (float) $request->input('paid_amount');
-        $this->checkPaymentStatus($invoice);
-        return redirect()->route('invoices.index')->with('success', 'Pembayaran diperbarui.');
+        $result = $invoiceService->recordPayment($invoice, (float) $request->input('paid_amount'));
+        return redirect()->route('invoices.index')->with('success', 'Pembayaran diperbarui. Sisa: Rp ' . number_format($result['remaining'], 0, ',', '.'));
     }
 
     public function sendToWhatsapp(Invoice $invoice)
@@ -97,12 +126,10 @@ class InvoiceController extends Controller
         }, "invoice-{$invoice->invoice_number}.pdf");
     }
 
-    private function checkPaymentStatus(Invoice $invoice): void
+    public function report(Invoice $invoice)
     {
-        if ($invoice->paid_amount >= $invoice->total && $invoice->total > 0) {
-            $invoice->update(['status' => 'lunas', 'paid_at' => now()]);
-        } elseif ($invoice->paid_amount > 0 && $invoice->status !== 'lunas') {
-            $invoice->update(['status' => 'hutang']);
-        }
+        $this->authorize('view', $invoice);
+        $invoice->load('client', 'payments');
+        return view('invoices.report', compact('invoice'));
     }
 }

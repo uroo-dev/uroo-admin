@@ -54,6 +54,11 @@ class Invoice extends Model
         return $this->belongsTo(Client::class);
     }
 
+    public function payments()
+    {
+        return $this->hasMany(InvoicePayment::class)->orderBy('created_at', 'asc');
+    }
+
     public static function generateInvoiceNumber(): string
     {
         $last = static::withTrashed()

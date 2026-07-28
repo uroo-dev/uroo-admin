@@ -59,6 +59,10 @@
         </div>
     </div>
 
+    @php
+        $items = $invoice->items ?? [];
+        $hasNewFormat = isset($items[0]['description']);
+    @endphp
     <table>
         <thead>
             <tr>
@@ -69,12 +73,17 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($invoice->items as $item)
+            @foreach($items as $item)
+                @php
+                    $desc = $hasNewFormat ? ($item['description'] ?? '-') : ($item['name'] ?? '-');
+                    $qty = $hasNewFormat ? ($item['quantity'] ?? 1) : ($item['qty'] ?? 1);
+                    $rate = $hasNewFormat ? ($item['rate'] ?? 0) : ($item['price'] ?? 0);
+                @endphp
                 <tr>
-                    <td>{{ $item['description'] }}</td>
-                    <td class="text-right">{{ $item['quantity'] }}</td>
-                    <td class="text-right">Rp {{ number_format($item['rate'], 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format((float)$item['quantity'] * (float)$item['rate'], 0, ',', '.') }}</td>
+                    <td>{{ $desc }}</td>
+                    <td class="text-right">{{ $qty }}</td>
+                    <td class="text-right">Rp {{ number_format($rate, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format((float)$qty * (float)$rate, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>

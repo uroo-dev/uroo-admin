@@ -25,35 +25,36 @@
                     <i class="bx bx-time-five text-white text-[28px]"></i>
                 </div>
                 <div>
-                    <p class="text-3xl font-extrabold">Rp {{ number_format($stats['pendingAmount'] ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Pending</p>
-                </div>
-            </div>
-        </div>
+<p class="text-3xl font-extrabold">Rp {{ number_format($stats['totalHutang'] ?? 0, 0, ',', '.') }}</p>
+                     <p class="text-sm font-medium text-txt-secondary">Hutang</p>
+                 </div>
+             </div>
+         </div>
 
-        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-[#22C55E] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-check-circle text-white text-[28px]"></i>
-                </div>
-                <div>
-                    <p class="text-3xl font-extrabold">Rp {{ number_format($stats['totalPaid'] ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Paid</p>
-                </div>
-            </div>
-        </div>
+         <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
+             <div class="flex items-center gap-4">
+                 <div class="w-14 h-14 bg-[#22C55E] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
+                     <i class="bx bx-check-circle text-white text-[28px]"></i>
+                 </div>
+                 <div>
+                     <p class="text-3xl font-extrabold">Rp {{ number_format($stats['totalLunas'] ?? 0, 0, ',', '.') }}</p>
+                     <p class="text-sm font-medium text-txt-secondary">Lunas</p>
+                 </div>
+             </div>
+         </div>
 
-        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-danger rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-error text-white text-[28px]"></i>
-                </div>
-                <div>
-                    <p class="text-3xl font-extrabold">Rp {{ number_format($stats['overdueAmount'] ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Overdue</p>
-                </div>
-            </div>
-        </div>
+         <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
+             <div class="flex items-center gap-4">
+                 <div class="w-14 h-14 bg-danger rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
+                     <i class="bx bx-receipt text-white text-[28px]"></i>
+                 </div>
+                 <div>
+                     <p class="text-3xl font-extrabold">Rp {{ number_format($stats['totalHutang'] ?? 0, 0, ',', '.') }}</p>
+                     <p class="text-sm font-medium text-txt-secondary">Total Piutang</p>
+                 </div>
+             </div>
+         </div>
+     </div>
     </div>
 
     {{-- Toolbar --}}
@@ -65,13 +66,11 @@
                     <input type="text" name="search" value="{{ $search }}" placeholder="Search invoices..."
                         class="w-full pl-12 pr-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
                 </div>
-                <select name="status" class="w-full sm:w-44 px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
-                    <option value="">All Status</option>
-                    <option value="pending" {{ $statusFilter === 'pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="paid" {{ $statusFilter === 'paid' ? 'selected' : '' }}>Paid</option>
-                    <option value="overdue" {{ $statusFilter === 'overdue' ? 'selected' : '' }}>Overdue</option>
-                    <option value="cancelled" {{ $statusFilter === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                </select>
+<select name="status" class="w-full sm:w-44 px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
+                     <option value="">Semua Status</option>
+                     <option value="hutang" {{ $statusFilter === 'hutang' ? 'selected' : '' }}>Hutang</option>
+                     <option value="lunas" {{ $statusFilter === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                 </select>
             </div>
             <div class="flex gap-3 w-full sm:w-auto">
                 <button type="submit" class="px-5 py-3 bg-surface text-txt-primary font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 active:shadow-hard-pressed transition-all duration-200 ease-out w-full sm:w-auto">
@@ -147,6 +146,9 @@
                                      <a href="{{ route('invoices.pdf', $invoice) }}" target="_blank" class="p-2 text-txt-secondary hover:text-primary transition-colors" title="Download PDF">
                                          <i class="bx bx-download text-lg"></i>
                                      </a>
+                                     <a href="{{ route('invoices.report', $invoice) }}" class="p-2 text-txt-secondary hover:text-[#F59E0B] transition-colors" title="Laporan Pembayaran">
+                                         <i class="bx bx-receipt text-lg"></i>
+                                     </a>
                                      <a href="https://wa.me/{{ $invoice->client?->whatsapp ?? '' }}?text=Halo%20{{ urlencode($invoice->client?->name ?? '') }}%0ABerikut%20invoice%20kita%3A%0ANo%3A%20{{ $invoice->invoice_number }}%0ATotal%3A%20Rp%20{{ number_format($invoice->total, 0, ',', '.') }}%0ATerbayar%3A%20Rp%20{{ number_format($invoice->paid_amount, 0, ',', '.') }}%0ASisa%3A%20Rp%20{{ number_format($invoice->remainingAmount(), 0, ',', '.') }}%0ATerima%20kasih." target="_blank" class="p-2 text-txt-secondary hover:text-[#25D366] transition-colors" title="Kirim WA">
                                          <i class="bx bxl-whatsapp text-lg"></i>
                                      </a>
@@ -173,10 +175,10 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
-                                <i class="bx bx-receipt text-5xl text-txt-secondary"></i>
-                                <p class="text-txt-secondary font-medium mt-3">No invoices found</p>
-                            </td>
+<td colspan="8" class="px-6 py-12 text-center">
+                                 <i class="bx bx-receipt text-5xl text-txt-secondary"></i>
+                                 <p class="text-txt-secondary font-medium mt-3">Tidak ada invoice ditemukan</p>
+                             </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -209,14 +211,11 @@
                     </select>
                 </div>
 <div>
-                     <label for="invoice-status" class="block text-sm font-semibold text-txt-primary mb-1.5">Status</label>
-                     <select name="status" id="invoice-status" required class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
-                         <option value="hutang">Hutang</option>
-                         <option value="lunas">Lunas</option>
-                     </select>
+                     <label for="invoice-total_billing" class="block text-sm font-semibold text-txt-primary mb-1.5">Total Tagihan</label>
+                     <input type="number" name="total_billing" id="invoice-total_billing" min="0" step="0.01" value="0" class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors" placeholder="0">
                  </div>
                  <div>
-                     <label for="invoice-paid_amount" class="block text-sm font-semibold text-txt-primary mb-1.5">Jumlah Dibayar (DP)</label>
+                     <label for="invoice-paid_amount" class="block text-sm font-semibold text-txt-primary mb-1.5">Di Bayar</label>
                      <input type="number" name="paid_amount" id="invoice-paid_amount" min="0" step="0.01" value="0" class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors" placeholder="0">
                  </div>
                  <div>
@@ -332,30 +331,34 @@ function invoiceModal() {
          formAction() {
              return this.editingInvoice ? '/invoices/' + this.editingInvoice.id : '{{ route("invoices.store") }}';
          },
-         resetForm() {
-             const clientField = document.getElementById('invoice-client_id');
-             if (clientField) clientField.value = '';
-             const statusField = document.getElementById('invoice-status');
-             if (statusField) statusField.value = 'hutang';
-             const paidAmountField = document.getElementById('invoice-paid_amount');
-             if (paidAmountField) paidAmountField.value = '0';
-             const dueDateField = document.getElementById('invoice-due_date');
-             if (dueDateField) dueDateField.value = '';
-             const notesField = document.getElementById('invoice-notes');
-             if (notesField) notesField.value = '';
-         },
-         populateForm(invoice) {
-             const clientField = document.getElementById('invoice-client_id');
-             if (clientField) clientField.value = invoice.client_id || '';
-             const statusField = document.getElementById('invoice-status');
-             if (statusField) statusField.value = invoice.status || 'hutang';
-             const paidAmountField = document.getElementById('invoice-paid_amount');
-             if (paidAmountField) paidAmountField.value = invoice.paid_amount ?? '0';
-             const dueDateField = document.getElementById('invoice-due_date');
-             if (dueDateField) dueDateField.value = invoice.due_date || '';
-             const notesField = document.getElementById('invoice-notes');
-             if (notesField) notesField.value = invoice.notes || '';
-         },
+resetForm() {
+              const clientField = document.getElementById('invoice-client_id');
+              if (clientField) clientField.value = '';
+              const statusField = document.getElementById('invoice-status');
+              if (statusField) statusField.value = 'hutang';
+              const totalField = document.getElementById('invoice-total_billing');
+              if (totalField) totalField.value = '0';
+              const paidAmountField = document.getElementById('invoice-paid_amount');
+              if (paidAmountField) paidAmountField.value = '0';
+              const dueDateField = document.getElementById('invoice-due_date');
+              if (dueDateField) dueDateField.value = '';
+              const notesField = document.getElementById('invoice-notes');
+              if (notesField) notesField.value = '';
+          },
+          populateForm(invoice) {
+              const clientField = document.getElementById('invoice-client_id');
+              if (clientField) clientField.value = invoice.client_id || '';
+              const statusField = document.getElementById('invoice-status');
+              if (statusField) statusField.value = invoice.status || 'hutang';
+              const totalField = document.getElementById('invoice-total_billing');
+              if (totalField) totalField.value = invoice.total || '0';
+              const paidAmountField = document.getElementById('invoice-paid_amount');
+              if (paidAmountField) paidAmountField.value = invoice.paid_amount ?? '0';
+              const dueDateField = document.getElementById('invoice-due_date');
+              if (dueDateField) dueDateField.value = invoice.due_date || '';
+              const notesField = document.getElementById('invoice-notes');
+              if (notesField) notesField.value = invoice.notes || '';
+          },
          populateEditBayarForm(invoice) {
              const invoiceField = document.getElementById('edit-bayar-invoice');
              if (invoiceField) invoiceField.value = invoice.invoice_number || '';

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Invoice;
+use App\Models\InvoicePayment;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class InvoiceService
@@ -33,14 +34,13 @@ class InvoiceService
 
     public function getStats(): array
     {
-        $totalRevenue = Invoice::where('status', 'lunas')->sum('total');
-        $pendingAmount = Invoice::where('status', 'hutang')->sum('total');
-        $overdueAmount = 0;
+        $totalLunas = Invoice::where('status', 'lunas')->sum('total');
+        $totalHutang = Invoice::where('status', 'hutang')->sum('total');
         $countsByStatus = Invoice::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
 
-        return compact('totalRevenue', 'pendingAmount', 'overdueAmount', 'countsByStatus');
+        return compact('totalLunas', 'totalHutang', 'countsByStatus');
     }
 
     public function processPayment(Invoice $invoice, float $amount): array
@@ -60,6 +60,36 @@ class InvoiceService
             'remaining' => $invoice->remainingAmount(),
             'status' => $invoice->status,
         ];
+    }
+
+    public function recordPayment(Invoice $invoice, float $amount, ?string $notes = null): array
+    {
+        $payment = InvoicePayment::create([
+            'invoice_id' => $invoice->id,
+            'amount' => $amount,
+            'remaining_after' => $invoice->remainingAmount(),
+            'notes' => $notes,
+        ]);
+
+        $newPaidAmount = (float) $invoice->paid_amount + $amount;
+        $invoice->paid_amount = min($newPaidAmount, (float) $invoice->total);
+        $this->checkPaymentStatus($invoice);
+
+        return [
+            'payment' => $payment,
+            'paid_amount' => $invoice->paid_amount,
+            'remaining' => $invoice->remainingAmount(),
+            'status' => $invoice->status,
+        ];
+    }
+
+    private function checkPaymentStatus(Invoice $invoice): void
+    {
+        if ($invoice->paid_amount >= $invoice->total && $invoice->total > 0) {
+            $invoice->update(['status' => 'lunas', 'paid_at' => now()]);
+        } elseif ($invoice->paid_amount > 0 && $invoice->status !== 'lunas') {
+            $invoice->update(['status' => 'hutang']);
+        }
     }
 
     public function generatePdf(Invoice $invoice)

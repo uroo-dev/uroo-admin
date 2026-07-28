@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('invoices/{invoice}/update-payment', [InvoiceController::class, 'updatePayment'])->name('invoices.update-payment');
     Route::post('invoices/{invoice}/send-wa', [InvoiceController::class, 'sendToWhatsapp'])->name('invoices.send-wa');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
+    Route::get('invoices/{invoice}/report', [InvoiceController::class, 'report'])->name('invoices.report');
     Route::resource('notes', NoteController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('bookmarks', BookmarkController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('ideas', IdeaController::class)->only(['index', 'store', 'update', 'destroy']);
