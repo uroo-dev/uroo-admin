@@ -44,32 +44,6 @@ class Invoice extends Model
         return $this->paid_amount >= $this->total;
     }
 
-    protected function casts(): array
-    {
-        return [
-            'items' => 'array',
-            'subtotal' => 'decimal:2',
-            'tax_percent' => 'decimal:2',
-            'tax_amount' => 'decimal:2',
-            'discount_percent' => 'decimal:2',
-            'discount_amount' => 'decimal:2',
-            'total' => 'decimal:2',
-            'paid_amount' => 'decimal:2',
-            'due_date' => 'date',
-            'paid_at' => 'datetime',
-        ];
-    }
-
-    public function remainingAmount(): float
-    {
-        return (float) $this->total - (float) $this->paid_amount;
-    }
-
-    public function isFullyPaid(): bool
-    {
-        return $this->paid_amount >= $this->total;
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
