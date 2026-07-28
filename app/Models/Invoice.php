@@ -15,7 +15,7 @@ class Invoice extends Model
         'user_id', 'client_id', 'invoice_number', 'items',
         'subtotal', 'tax_percent', 'tax_amount',
         'discount_percent', 'discount_amount',
-        'total', 'status', 'due_date', 'paid_at', 'notes',
+        'total', 'paid_amount', 'status', 'due_date', 'paid_at', 'notes',
     ];
 
     protected function casts(): array
@@ -28,9 +28,46 @@ class Invoice extends Model
             'discount_percent' => 'decimal:2',
             'discount_amount' => 'decimal:2',
             'total' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
             'due_date' => 'date',
             'paid_at' => 'datetime',
         ];
+    }
+
+    public function remainingAmount(): float
+    {
+        return (float) $this->total - (float) $this->paid_amount;
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return $this->paid_amount >= $this->total;
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'items' => 'array',
+            'subtotal' => 'decimal:2',
+            'tax_percent' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'discount_percent' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'total' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
+            'due_date' => 'date',
+            'paid_at' => 'datetime',
+        ];
+    }
+
+    public function remainingAmount(): float
+    {
+        return (float) $this->total - (float) $this->paid_amount;
+    }
+
+    public function isFullyPaid(): bool
+    {
+        return $this->paid_amount >= $this->total;
     }
 
     public function user(): BelongsTo

@@ -41,8 +41,10 @@ class InvoiceController extends Controller
         $data = $request->validated();
         $data['invoice_number'] = $invoiceService->generateInvoiceNumber();
         $data['user_id'] = auth()->id();
+        $data['paid_amount'] = (float) ($data['paid_amount'] ?? 0);
         $totals = $invoiceService->calculateTotals($data['items'], (float)($data['tax_percent'] ?? 0), (float)($data['discount_percent'] ?? 0));
-        Invoice::create(array_merge($data, $totals));
+        $invoice = Invoice::create(array_merge($data, $totals));
+        $this->checkPaymentStatus($invoice);
         return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
     }
 
@@ -50,9 +52,34 @@ class InvoiceController extends Controller
     {
         $this->authorize('update', $invoice);
         $data = $request->validated();
+        $data['paid_amount'] = (float) ($data['paid_amount'] ?? 0);
         $totals = $invoiceService->calculateTotals($data['items'], (float)($data['tax_percent'] ?? 0), (float)($data['discount_percent'] ?? 0));
         $invoice->update(array_merge($data, $totals));
+        $this->checkPaymentStatus($invoice);
         return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
+    }
+
+    public function updatePayment(Request $request, Invoice $invoice)
+    {
+        $this->authorize('update', $invoice);
+        $request->validate([
+            'paid_amount' => 'required|numeric|min:0',
+        ]);
+        $invoice->paid_amount = (float) $request->input('paid_amount');
+        $this->checkPaymentStatus($invoice);
+        return redirect()->route('invoices.index')->with('success', 'Pembayaran diperbarui.');
+    }
+
+    public function sendToWhatsapp(Invoice $invoice)
+    {
+        $this->authorize('view', $invoice);
+        $pdf = app(InvoiceService::class)->generatePdf($invoice);
+        $pdfPath = storage_path('app/public/invoice-' . $invoice->invoice_number . '.pdf');
+        file_put_contents($pdfPath, $pdf->output());
+        $clientWhatsapp = $invoice->client?->whatsapp ?? '';
+        $message = urlencode("Halo {$invoice->client?->name},\n\nBerikut invoice kami:\nNo: {$invoice->invoice_number}\nTotal: Rp " . number_format($invoice->total, 0, ',', '.') . "\nTerbayar: Rp " . number_format($invoice->paid_amount, 0, ',', '.') . "\nSisa: Rp " . number_format($invoice->remainingAmount(), 0, ',', '.') . "\n\nTerima kasih.");
+        $waUrl = "https://wa.me/{$clientWhatsapp}?text={$message}";
+        return redirect()->to($waUrl);
     }
 
     public function destroy(Invoice $invoice)
@@ -62,25 +89,20 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.index')->with('success', 'Invoice deleted successfully.');
     }
 
-    public function markPaid(Invoice $invoice)
-    {
-        $this->authorize('update', $invoice);
-        $invoice->update(['status' => 'paid', 'paid_at' => now()]);
-        return redirect()->route('invoices.index')->with('success', 'Invoice marked as paid');
-    }
-
-    public function markOverdue(Invoice $invoice)
-    {
-        $this->authorize('update', $invoice);
-        $invoice->update(['status' => 'overdue']);
-        return redirect()->route('invoices.index')->with('success', 'Invoice marked as overdue');
-    }
-
     public function downloadPdf(Invoice $invoice)
     {
         $pdf = app(InvoiceService::class)->generatePdf($invoice);
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, "invoice-{$invoice->invoice_number}.pdf");
+    }
+
+    private function checkPaymentStatus(Invoice $invoice): void
+    {
+        if ($invoice->paid_amount >= $invoice->total && $invoice->total > 0) {
+            $invoice->update(['status' => 'lunas', 'paid_at' => now()]);
+        } elseif ($invoice->paid_amount > 0 && $invoice->status !== 'lunas') {
+            $invoice->update(['status' => 'hutang']);
+        }
     }
 }

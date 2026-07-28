@@ -33,14 +33,33 @@ class InvoiceService
 
     public function getStats(): array
     {
-        $totalRevenue = Invoice::where('status', 'paid')->sum('total');
-        $pendingAmount = Invoice::where('status', 'pending')->sum('total');
-        $overdueAmount = Invoice::where('status', 'overdue')->sum('total');
+        $totalRevenue = Invoice::where('status', 'lunas')->sum('total');
+        $pendingAmount = Invoice::where('status', 'hutang')->sum('total');
+        $overdueAmount = 0;
         $countsByStatus = Invoice::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
 
         return compact('totalRevenue', 'pendingAmount', 'overdueAmount', 'countsByStatus');
+    }
+
+    public function processPayment(Invoice $invoice, float $amount): array
+    {
+        $newPaidAmount = (float) $invoice->paid_amount + $amount;
+        $invoice->paid_amount = min($newPaidAmount, (float) $invoice->total);
+
+        if ($invoice->isFullyPaid()) {
+            $invoice->status = 'lunas';
+            $invoice->paid_at = now();
+        }
+
+        $invoice->save();
+
+        return [
+            'paid_amount' => $invoice->paid_amount,
+            'remaining' => $invoice->remainingAmount(),
+            'status' => $invoice->status,
+        ];
     }
 
     public function generatePdf(Invoice $invoice)

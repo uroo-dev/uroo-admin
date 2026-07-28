@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('clients', ClientController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('credentials', CredentialController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('invoices', InvoiceController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::patch('invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('invoices.mark-paid');
-    Route::patch('invoices/{invoice}/mark-overdue', [InvoiceController::class, 'markOverdue'])->name('invoices.mark-overdue');
+    Route::patch('invoices/{invoice}/update-payment', [InvoiceController::class, 'updatePayment'])->name('invoices.update-payment');
+    Route::post('invoices/{invoice}/send-wa', [InvoiceController::class, 'sendToWhatsapp'])->name('invoices.send-wa');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
     Route::resource('notes', NoteController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('bookmarks', BookmarkController::class)->only(['index', 'store', 'update', 'destroy']);
