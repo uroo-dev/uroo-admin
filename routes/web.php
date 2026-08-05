@@ -34,7 +34,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('credentials', CredentialController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('invoices', InvoiceController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::patch('invoices/{invoice}/update-payment', [InvoiceController::class, 'updatePayment'])->name('invoices.update-payment');
-    Route::post('invoices/{invoice}/send-wa', [InvoiceController::class, 'sendToWhatsapp'])->name('invoices.send-wa');
+    Route::get('invoices/{invoice}/send-wa', [InvoiceController::class, 'sendToWhatsapp'])->name('invoices.send-wa');
+    Route::get('invoices/{invoice}/preview', [InvoiceController::class, 'previewPdf'])->name('invoices.preview');
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
     Route::get('invoices/{invoice}/report', [InvoiceController::class, 'report'])->name('invoices.report');
     Route::resource('notes', NoteController::class)->only(['index', 'store', 'update', 'destroy']);
