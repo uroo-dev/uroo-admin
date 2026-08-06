@@ -152,7 +152,15 @@ EOF
             --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --base-href "$BASE_PATH"
 
-      - name: Upload Pages artifact
+      - name: Build & copy APK for download
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          cp build/app/outputs/flutter-apk/app-release.apk build/web/UROO.Admin.apk
+
+      - name: Upload Pages artifact (web + APK)
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ env.PROJECT_DIR }}/build/web
