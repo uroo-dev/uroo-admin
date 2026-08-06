@@ -1,5 +1,7 @@
 <?php
 
+use App\Console\Commands\SyncFromSupabase;
+use App\Console\Commands\SyncGitHub;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
@@ -8,7 +10,11 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('github:sync {user_id?}', function () {
-    $this->call(\App\Console\Commands\SyncGitHub::class, [
+    $this->call(SyncGitHub::class, [
         'user_id' => $this->argument('user_id'),
     ]);
 })->purpose('Sync repositories and commits from GitHub');
+
+Artisan::command('sync:pull', function () {
+    $this->call(SyncFromSupabase::class);
+})->purpose('Pull Supabase changes into local MySQL')->everyMinute();

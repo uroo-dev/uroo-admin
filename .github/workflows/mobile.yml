@@ -1,0 +1,164 @@
+name: Mobile Build & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: mobile
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  FLUTTER_ROOT: flutter
+  PROJECT_DIR: mobile
+
+jobs:
+  analyze-and-test:
+    name: Analyze & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter analyze
+
+      - name: Test
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter test
+
+  build-android:
+    name: Build Android APK
+    needs: analyze-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get
+
+      - name: Setup release signing (optional)
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            mkdir -p android/keystore
+            echo "$KEYSTORE_B64" | base64 -d > android/keystore/uroo-admin-release.jks
+            cat > android/key.properties <<EOF
+storePassword=$KEYSTORE_STORE_PASSWORD
+keyPassword=$KEYSTORE_KEY_PASSWORD
+keyAlias=$KEYSTORE_KEY_ALIAS
+storeFile=$(pwd)/android/keystore/uroo-admin-release.jks
+EOF
+            echo "Release signing configured."
+          else
+            echo "No keystore secret set — using debug signing fallback."
+          fi
+
+      - name: Build APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          flutter build apk --release \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          cp build/app/outputs/flutter-apk/app-release.apk UROO.Admin.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UROO.Admin.apk
+          path: ${{ env.PROJECT_DIR }}/UROO.Admin.apk
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: UROO.Admin ${{ github.ref_name }}
+          files: ${{ env.PROJECT_DIR }}/UROO.Admin.apk
+          generate_release_notes: true
+
+  build-and-deploy-web:
+    name: Build & Deploy Web (GitHub Pages)
+    needs: analyze-and-test
+    if: ${{ ! cancelled() }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: flutter pub get
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build Web
+        working-directory: ${{ env.PROJECT_DIR }}
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+        run: |
+          flutter build web --release \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --base-href "$BASE_PATH"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.PROJECT_DIR }}/build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages
