@@ -1,7 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:uro_admin/core/utils/format_util.dart';
 
 void main() {
+  setUpAll(() async {
+    await initializeDateFormatting('id_ID');
+  });
+
   group('FormatUtil', () {
     test('rupiah formats Indonesian currency', () {
       expect(FormatUtil.rupiah(1500000), contains('1.500.000'));
