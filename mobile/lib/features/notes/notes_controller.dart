@@ -14,7 +14,7 @@ class NotesController extends AsyncNotifier<List<Note>> {
     ref.invalidateSelf();
   }
 
-  Future<void> update(int id, Note note) async {
+  Future<void> updateItem(int id, Note note) async {
     await _repo.update(id, note);
     ref.invalidateSelf();
   }

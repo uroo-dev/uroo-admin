@@ -4,12 +4,9 @@ import '../models/note.dart';
 
 class NoteRepository {
   Future<List<Note>> list({bool pinnedOnly = false}) async {
-    var query = supabase
-        .from('notes')
-        .select()
-        .order('created_at', ascending: false);
-    if (pinnedOnly) query = query.eq('is_pinned', true);
-    final res = await query;
+    final builder = supabase.from('notes').select();
+    final query = pinnedOnly ? builder.eq('is_pinned', true) : builder;
+    final res = await query.order('created_at', ascending: false);
     return res.map((e) => Note.fromJson(e)).toList();
   }
 

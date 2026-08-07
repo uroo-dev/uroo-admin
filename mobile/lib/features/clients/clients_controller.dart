@@ -14,7 +14,7 @@ class ClientsController extends AsyncNotifier<List<Client>> {
     ref.invalidateSelf();
   }
 
-  Future<void> update(int id, Client client) async {
+  Future<void> updateItem(int id, Client client) async {
     await _repo.update(id, client);
     ref.invalidateSelf();
   }

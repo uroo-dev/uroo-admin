@@ -57,6 +57,6 @@ class SavingsRepository {
     await supabase.from('savings_goals').update({
       'current_amount': newBalance,
       'is_completed': completed,
-    }).eq('id', goal.id);
+    }).eq('id', goal.id!);
   }
 }

@@ -4,12 +4,9 @@ import '../models/brain_dump.dart';
 
 class BrainDumpRepository {
   Future<List<BrainDump>> list({bool includeArchived = false}) async {
-    var query = supabase
-        .from('brain_dumps')
-        .select()
-        .order('created_at', ascending: false);
-    if (!includeArchived) query = query.eq('is_archived', false);
-    final res = await query;
+    final builder = supabase.from('brain_dumps').select();
+    final query = !includeArchived ? builder.eq('is_archived', false) : builder;
+    final res = await query.order('created_at', ascending: false);
     return res.map((e) => BrainDump.fromJson(e)).toList();
   }
 

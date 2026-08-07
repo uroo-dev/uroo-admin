@@ -14,7 +14,7 @@ class BrainDumpsController extends AsyncNotifier<List<BrainDump>> {
     ref.invalidateSelf();
   }
 
-  Future<void> update(int id, BrainDump dump) async {
+  Future<void> updateItem(int id, BrainDump dump) async {
     await _repo.update(id, dump);
     ref.invalidateSelf();
   }

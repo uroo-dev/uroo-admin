@@ -65,7 +65,7 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
     final controller = ref.read(notesProvider.notifier);
     try {
       if (_isEdit) {
-        await controller.update(widget.id!, note);
+        await controller.updateItem(widget.id!, note);
       } else {
         await controller.create(note);
       }

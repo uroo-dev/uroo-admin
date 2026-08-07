@@ -73,7 +73,7 @@ class _IdeaFormScreenState extends ConsumerState<IdeaFormScreen> {
     final controller = ref.read(ideasProvider.notifier);
     try {
       if (_isEdit) {
-        await controller.update(widget.id!, idea);
+        await controller.updateItem(widget.id!, idea);
       } else {
         await controller.create(idea);
       }

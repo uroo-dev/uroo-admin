@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/format_util.dart';
 import '../../core/widgets/neo_button.dart';
+import '../../core/widgets/neo_card.dart';
 import '../../core/widgets/neo_input.dart';
 import '../../core/widgets/neo_scaffold.dart';
 import '../../data/models/client.dart';

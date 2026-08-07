@@ -56,7 +56,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final controller = ref.read(clientsProvider.notifier);
     try {
       if (_isEdit) {
-        await controller.update(widget.id!, client);
+        await controller.updateItem(widget.id!, client);
       } else {
         await controller.create(client);
       }

@@ -14,7 +14,7 @@ class ProjectsController extends AsyncNotifier<List<Project>> {
     ref.invalidateSelf();
   }
 
-  Future<void> update(int id, Project project) async {
+  Future<void> updateItem(int id, Project project) async {
     await _repo.update(id, project);
     ref.invalidateSelf();
   }

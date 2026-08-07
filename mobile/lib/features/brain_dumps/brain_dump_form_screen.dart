@@ -49,7 +49,7 @@ class _BrainDumpFormScreenState extends ConsumerState<BrainDumpFormScreen> {
     final controller = ref.read(brainDumpsProvider.notifier);
     try {
       if (_isEdit) {
-        await controller.update(widget.id!, dump);
+        await controller.updateItem(widget.id!, dump);
       } else {
         await controller.create(dump);
       }

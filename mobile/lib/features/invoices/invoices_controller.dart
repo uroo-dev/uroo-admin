@@ -14,7 +14,7 @@ class InvoicesController extends AsyncNotifier<List<Invoice>> {
     ref.invalidateSelf();
   }
 
-  Future<void> update(int id, Invoice invoice) async {
+  Future<void> updateItem(int id, Invoice invoice) async {
     await _repo.update(id, invoice);
     ref.invalidateSelf();
   }

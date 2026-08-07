@@ -179,7 +179,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _statCard((String, int, IconData, Color) stat, int index) {
+  Widget _statCard((String, num, IconData, Color) stat, int index) {
     return Expanded(
       child: NeoCard(
         padding: const EdgeInsets.all(16),

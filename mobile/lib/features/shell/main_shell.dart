@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/theme/app_colors.dart';
-import '../core/theme/app_theme.dart';
-import '../features/auth/auth_controller.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_theme.dart';
+import '../auth/auth_controller.dart';
 
 /// Main scaffold with bottom navigation + drawer (Neo brutalism).
 class MainShell extends ConsumerWidget {
@@ -98,8 +98,13 @@ class MainShell extends ConsumerWidget {
                   for (var i = 0; i < tabs.length; i++)
                     _drawerItem(
                       context,
-                      icon: ['dashboard', 'notes', 'ideas', 'savings', 'invoices']
-                              [i],
+                      icon: const [
+                        Icons.space_dashboard_outlined,
+                        Icons.sticky_note_2_outlined,
+                        Icons.lightbulb_outline,
+                        Icons.savings_outlined,
+                        Icons.receipt_long_outlined,
+                      ][i],
                       label: ['Dashboard', 'Catatan', 'Ide', 'Tabungan', 'Invoice'][i],
                       active: i == navigationShell.currentIndex,
                       onTap: () {

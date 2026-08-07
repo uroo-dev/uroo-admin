@@ -14,7 +14,7 @@ class IdeasController extends AsyncNotifier<List<AppIdea>> {
     ref.invalidateSelf();
   }
 
-  Future<void> update(int id, AppIdea idea) async {
+  Future<void> updateItem(int id, AppIdea idea) async {
     await _repo.update(id, idea);
     ref.invalidateSelf();
   }

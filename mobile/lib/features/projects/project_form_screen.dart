@@ -66,7 +66,7 @@ class _ProjectFormScreenState extends ConsumerState<ProjectFormScreen> {
     final controller = ref.read(projectsProvider.notifier);
     try {
       if (_isEdit) {
-        await controller.update(widget.id!, project);
+        await controller.updateItem(widget.id!, project);
       } else {
         await controller.create(project);
       }
