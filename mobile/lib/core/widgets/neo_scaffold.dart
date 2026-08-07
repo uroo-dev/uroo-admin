@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 
 /// App-wide scaffold with Neo Brutalism chrome (title bar + hard shadow border).
 class NeoScaffold extends StatelessWidget {

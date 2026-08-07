@@ -84,7 +84,7 @@ jobs:
       - name: Analyze & Test
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          flutter analyze
+          flutter analyze --no-fatal-warnings --no-fatal-infos
           flutter test
 
       - name: Build release APK

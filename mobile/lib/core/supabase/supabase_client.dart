@@ -1,8 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../config/app_constants.dart';
-
 /// Singleton Supabase client. Initialized once in main().
 final supabase = Supabase.instance.client;
 

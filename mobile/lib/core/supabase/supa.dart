@@ -1,5 +1,3 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import 'supabase_client.dart';
 
 /// Helpers for interacting with Supabase (bigint PK, auth-based RLS).

@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/invoice.dart';
 import '../../data/models/savings_goal.dart';
-import '../../features/brain_dumps/brain_dumps_controller.dart';
 import '../../features/clients/clients_controller.dart';
 import '../../features/ideas/ideas_controller.dart';
 import '../../features/invoices/invoices_controller.dart';
