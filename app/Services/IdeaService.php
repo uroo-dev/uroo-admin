@@ -23,6 +23,22 @@ class IdeaService
         ];
     }
 
+    public function parseLines(string $value): array
+    {
+        return array_values(array_filter(
+            array_map('trim', explode("\n", $value)),
+            fn (string $line) => $line !== ''
+        ));
+    }
+
+    public function parseTags(string $value): array
+    {
+        return array_values(array_filter(
+            array_map('trim', explode(',', $value)),
+            fn (string $tag) => $tag !== ''
+        ));
+    }
+
     public function getByPlatform(int $userId): Collection
     {
         return AppIdea::where('user_id', $userId)

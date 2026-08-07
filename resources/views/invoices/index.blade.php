@@ -43,8 +43,8 @@
         </div>
         <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 hover:-translate-y-1.5 hover:shadow-hard-hover transition-all duration-200">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-danger rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-error-circle text-white text-3xl"></i>
+                <div class="w-14 h-14 bg-[#EF4444] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
+                    <i class="bx bx-error text-white text-3xl"></i>
                 </div>
                 <div>
                     <p class="text-2xl font-extrabold">Rp {{ number_format($stats['totalPiutang'] ?? 0, 0, ',', '.') }}</p>

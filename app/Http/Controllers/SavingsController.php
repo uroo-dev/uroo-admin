@@ -28,7 +28,7 @@ class SavingsController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'target_amount' => 'required|numeric|min:1',
+            'target_amount' => 'required|numeric|min:0.01',
             'current_amount' => 'nullable|numeric|min:0',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:50',
@@ -46,7 +46,7 @@ class SavingsController extends Controller
         $this->authorize('update', $goal);
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'target_amount' => 'required|numeric|min:1',
+            'target_amount' => 'required|numeric|min:0.01',
             'current_amount' => 'nullable|numeric|min:0',
             'icon' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:50',
@@ -84,7 +84,7 @@ class SavingsController extends Controller
     {
         $this->authorize('withdraw', $goal);
         $data = $request->validate([
-            'amount' => 'required|numeric|min:0.01|max:' . $goal->current_amount,
+            'amount' => 'required|numeric|min:0.01',
             'description' => 'nullable|string|max:1000',
         ]);
         SavingsTransaction::create(['goal_id' => $goal->id, 'type' => 'withdraw', 'amount' => $data['amount'], 'description' => $data['description'] ?? 'Withdrawal']);

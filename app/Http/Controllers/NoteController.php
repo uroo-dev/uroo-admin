@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
+use App\Services\NoteService;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
@@ -17,7 +18,7 @@ class NoteController extends Controller
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('content', 'like', "%{$search}%");
+                    ->orWhere('content', 'like', "%{$search}%");
             });
         }
         if ($category) {
@@ -37,32 +38,36 @@ class NoteController extends Controller
         return view('notes.index', compact('notes', 'categories', 'search', 'category', 'showFavorites'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, NoteService $noteService)
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
             'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|array',
+            'tags' => 'nullable|string',
             'is_pinned' => 'boolean',
             'is_favorite' => 'boolean',
         ]);
+        $data['tags'] = $noteService->parseTags($data['tags'] ?? '');
         auth()->user()->notes()->create($data);
+
         return redirect()->route('notes.index')->with('success', 'Note created successfully.');
     }
 
-    public function update(Request $request, Note $note)
+    public function update(Request $request, Note $note, NoteService $noteService)
     {
         $this->authorize('update', $note);
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'nullable|string',
             'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|array',
+            'tags' => 'nullable|string',
             'is_pinned' => 'boolean',
             'is_favorite' => 'boolean',
         ]);
+        $data['tags'] = $noteService->parseTags($data['tags'] ?? '');
         $note->update($data);
+
         return redirect()->route('notes.index')->with('success', 'Note updated successfully.');
     }
 
@@ -70,20 +75,23 @@ class NoteController extends Controller
     {
         $this->authorize('delete', $note);
         $note->delete();
+
         return redirect()->route('notes.index')->with('success', 'Note deleted successfully.');
     }
 
     public function togglePin(Note $note)
     {
         $this->authorize('update', $note);
-        $note->update(['is_pinned' => !$note->is_pinned]);
+        $note->update(['is_pinned' => ! $note->is_pinned]);
+
         return redirect()->route('notes.index');
     }
 
     public function toggleFavorite(Note $note)
     {
         $this->authorize('update', $note);
-        $note->update(['is_favorite' => !$note->is_favorite]);
+        $note->update(['is_favorite' => ! $note->is_favorite]);
+
         return redirect()->route('notes.index');
     }
 }

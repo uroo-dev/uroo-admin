@@ -4,54 +4,7 @@
 @section('page-title', 'Developer Notes')
 
 @section('content')
-<div x-data="{
-    modalOpen: false,
-    editMode: false,
-    editingId: null,
-    formAction: '{{ route('notes.store') }}',
-    formData: { title:'', content:'', category:'', tags:'', is_pinned:false, is_favorite:false },
-    openCreateModal() {
-        this.editMode = false;
-        this.editingId = null;
-        this.formAction = '{{ route('notes.store') }}';
-        this.formData = { title:'', content:'', category:'', tags:'', is_pinned:false, is_favorite:false };
-        this.modalOpen = true;
-    },
-    openEditModal(el) {
-        this.editMode = true;
-        this.editingId = el.dataset.id;
-        this.formAction = '{{ route('notes.update', [':id']) }}'.replace(':id', el.dataset.id);
-        this.formData = {
-            title: el.dataset.title,
-            content: el.dataset.content,
-            category: el.dataset.category,
-            tags: el.dataset.tags,
-            is_pinned: el.dataset.isPinned === 'true',
-            is_favorite: el.dataset.isFavorite === 'true',
-        };
-        this.modalOpen = true;
-    },
-    deleteNote(formId) {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'You won\'t be able to revert this!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#EF4444',
-            cancelButtonColor: '#6B7280',
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Batal',
-            background: '#FFFFFF',
-            customClass: {
-                popup: 'border-4 border-border-dark rounded-modal shadow-hard'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(formId).submit();
-            }
-        });
-    }
-}">
+<div x-data="noteApp()">
 
     {{-- Toolbar --}}
     <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 mb-8">
@@ -74,7 +27,7 @@
             <button type="submit" class="px-4 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
                 Filter
             </button>
-            <button type="button" @click="openCreateModal()"
+            <button type="button" @click="openCreate()"
                 class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 transition-all duration-200 ease-out flex items-center gap-2 self-start">
                 <i class="bx bx-plus text-lg"></i>
                 New Note
@@ -136,21 +89,14 @@
 
                     <div class="flex items-center justify-between pt-4 border-t-4 border-border-dark mt-auto">
                         <div class="flex items-center gap-1">
-                            <button type="button" @click="openEditModal($el)"
-                                class="p-2 text-txt-secondary hover:text-primary transition-colors" title="Edit"
-                                data-id="{{ $note->id }}"
-                                data-title="{{ e($note->title) }}"
-                                data-content="{{ e($note->content) }}"
-                                data-category="{{ e($note->category) }}"
-                                data-tags="{{ e(is_array($note->tags) ? implode(', ', $note->tags) : '') }}"
-                                data-is-pinned="{{ $note->is_pinned ? 'true' : 'false' }}"
-                                data-is-favorite="{{ $note->is_favorite ? 'true' : 'false' }}">
+                            <button type="button" @click='openEdit(@json($note))'
+                                class="p-2 text-txt-secondary hover:text-primary transition-colors" title="Edit">
                                 <i class="bx bx-edit text-lg"></i>
                             </button>
-                            <form id="delete-form-note-{{ $note->id }}" action="{{ route('notes.destroy', $note) }}" method="POST" class="inline">
+                            <form id="delNote-{{ $note->id }}" action="{{ route('notes.destroy', $note) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" @click="deleteNote('delete-form-note-{{ $note->id }}')"
+                                <button type="button" @click="confirmDelete('delNote-{{ $note->id }}', @js($note->title))"
                                     class="p-2 text-txt-secondary hover:text-danger transition-colors" title="Delete">
                                     <i class="bx bx-trash text-lg"></i>
                                 </button>
@@ -163,95 +109,159 @@
     @endif
 
     {{-- Pagination --}}
-    {{ $notes->links() }}
+    @if($notes->hasPages())
+        <div class="mt-8">
+            {{ $notes->links() }}
+        </div>
+    @endif
 
-    {{-- Create/Edit Modal --}}
-    <div x-show="modalOpen"
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-         style="display: none;">
-        <div x-show="modalOpen"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="scale-95 opacity-0"
-             x-transition:enter-end="scale-100 opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="scale-100 opacity-100"
-             x-transition:leave-end="scale-95 opacity-0"
-             @click.outside="modalOpen = false"
-             class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-lg animate-scale-in"
-             style="display: none;">
+    {{-- ============================================================ --}}
+    {{-- MODAL: Create / Edit Note --}}
+    {{-- ============================================================ --}}
+    <div x-show="showModal"
+        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto"
+        style="display:none;">
+        <div x-show="showModal"
+            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="scale-95 opacity-0" x-transition:enter-end="scale-100 opacity-100"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="scale-100 opacity-0" x-transition:leave-end="scale-95 opacity-0"
+            @click.outside="closeModal()"
+            class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-lg my-6"
+            style="display:none;">
+
+            {{-- Modal Header --}}
             <div class="flex items-center justify-between px-6 py-4 border-b-4 border-border-dark">
-                <h3 class="text-lg font-extrabold" x-text="editMode ? 'Edit Note' : 'New Note'"></h3>
-                <button type="button" @click="modalOpen = false" class="text-2xl text-txt-secondary hover:text-danger transition-colors">
+                <h3 class="text-lg font-extrabold" x-text="editingNote ? 'Edit Note' : 'New Note'"></h3>
+                <button @click="closeModal()" class="text-2xl text-txt-secondary hover:text-danger transition-colors">
                     <i class="bx bx-x"></i>
                 </button>
             </div>
-            <form method="POST" :action="formAction" class="p-6 space-y-4">
+
+            {{-- Form --}}
+            <form method="POST" :action="editingNote ? '/notes/'+editingNote.id : '{{ route('notes.store') }}'" class="p-6 space-y-5">
                 @csrf
-                <template x-if="editMode">
-                    <input type="hidden" name="_method" value="PUT">
-                </template>
+                <input type="hidden" name="_method" :value="editingNote ? 'PUT' : 'POST'">
 
+                {{-- Title --}}
                 <div>
-                    <label for="note-title" class="block text-sm font-semibold text-txt-primary mb-1.5">Title</label>
-                    <input type="text" id="note-title" name="title" required x-model="formData.title"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                        placeholder="Note title">
+                    <label class="block text-sm font-bold mb-1.5">Title <span class="text-danger">*</span></label>
+                    <input type="text" name="title" x-model="form.title" required maxlength="255"
+                        placeholder="Note title"
+                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
                 </div>
 
+                {{-- Content --}}
                 <div>
-                    <label for="note-content" class="block text-sm font-semibold text-txt-primary mb-1.5">Content</label>
-                    <textarea id="note-content" name="content" rows="5" x-model="formData.content"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none resize-none"
-                        placeholder="Write your note here..."></textarea>
+                    <label class="block text-sm font-bold mb-1.5">Content</label>
+                    <textarea name="content" x-model="form.content" rows="5"
+                        placeholder="Write your note here..."
+                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none resize-none"></textarea>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                {{-- Row: Category + Tags --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="note-category" class="block text-sm font-semibold text-txt-primary mb-1.5">Category</label>
-                        <input type="text" id="note-category" name="category" x-model="formData.category"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="E.g. Work">
+                        <label class="block text-sm font-bold mb-1.5">Category</label>
+                        <input type="text" name="category" x-model="form.category" maxlength="100"
+                            placeholder="E.g. Work"
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
                     </div>
                     <div>
-                        <label for="note-tags" class="block text-sm font-semibold text-txt-primary mb-1.5">Tags</label>
-                        <input type="text" id="note-tags" name="tags" x-model="formData.tags"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="comma, separated">
+                        <label class="block text-sm font-bold mb-1.5">Tags</label>
+                        <input type="text" name="tags" x-model="form.tags"
+                            placeholder="comma, separated"
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
                     </div>
                 </div>
 
-                <div class="flex items-center gap-6 pt-2">
+                {{-- Row: Pinned + Favorite --}}
+                <div class="flex items-center gap-6 pt-1">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="is_pinned" value="1" x-model="formData.is_pinned"
+                        <input type="checkbox" name="is_pinned" value="1" x-model="form.is_pinned"
                             class="w-4 h-4 accent-primary rounded border-4 border-border-dark">
                         <span class="text-sm font-medium text-txt-primary">Pinned</span>
                     </label>
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="is_favorite" value="1" x-model="formData.is_favorite"
+                        <input type="checkbox" name="is_favorite" value="1" x-model="form.is_favorite"
                             class="w-4 h-4 accent-primary rounded border-4 border-border-dark">
                         <span class="text-sm font-medium text-txt-primary">Favorite</span>
                     </label>
                 </div>
 
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" @click="modalOpen = false"
-                        class="px-6 py-3 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
+                {{-- Actions --}}
+                <div class="flex justify-end gap-3 pt-2 border-t-4 border-border-dark">
+                    <button type="button" @click="closeModal()"
+                        class="px-6 py-3 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all duration-200">
                         Cancel
                     </button>
                     <button type="submit"
-                        class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
-                        <span x-text="editMode ? 'Update Note' : 'Save Note'"></span>
+                        class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 active:shadow-hard-pressed transition-all duration-200">
+                        <i class="bx bx-save mr-1"></i> <span x-text="editingNote ? 'Update Note' : 'Save Note'"></span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-</div>
+</div>{{-- end x-data --}}
+
+<script>
+function noteApp() {
+    return {
+        showModal: false,
+        editingNote: null,
+        form: {
+            title: '',
+            content: '',
+            category: '',
+            tags: '',
+            is_pinned: false,
+            is_favorite: false,
+        },
+
+        openCreate() {
+            this.editingNote = null;
+            this.form = { title: '', content: '', category: '', tags: '', is_pinned: false, is_favorite: false };
+            this.showModal = true;
+        },
+
+        openEdit(note) {
+            this.editingNote = note;
+            this.form = {
+                title: note.title || '',
+                content: note.content || '',
+                category: note.category || '',
+                tags: Array.isArray(note.tags) ? note.tags.join(', ') : (note.tags || ''),
+                is_pinned: !!note.is_pinned,
+                is_favorite: !!note.is_favorite,
+            };
+            this.showModal = true;
+        },
+
+        closeModal() {
+            this.showModal = false;
+            this.editingNote = null;
+        },
+
+        confirmDelete(formId, noteTitle) {
+            if (typeof SwalDanger !== 'undefined') {
+                SwalDanger.fire({
+                    title: 'Hapus Note?',
+                    text: 'Note "' + noteTitle + '" akan dihapus permanen.',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal',
+                    showCancelButton: true,
+                }).then((result) => {
+                    if (result.isConfirmed) document.getElementById(formId).submit();
+                });
+            } else {
+                if (confirm('Hapus note "' + noteTitle + '"?')) {
+                    document.getElementById(formId).submit();
+                }
+            }
+        },
+    };
+}
+</script>
 @endsection

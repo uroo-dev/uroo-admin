@@ -1,277 +1,402 @@
 @extends('layouts.app')
-
 @section('title', 'Subscriptions')
 @section('page-title', 'Subscriptions')
 
 @section('content')
 
-    {{-- Flash success toast --}}
-    @if (session('success'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            Swal.fire({
-                toast: true,
-                position: 'top-end',
-                icon: 'success',
-                title: @json(session('success')),
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-            });
-        });
-    </script>
-    @endif
+<script>
+function subApp() {
+    return {
+        showModal: false,
+        editingSub: null,
 
-    {{-- Stat Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-primary rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-receipt text-white text-[28px]"></i>
-                </div>
-                <div>
-                    <p class="text-3xl font-extrabold">Rp {{ number_format($stats['monthlyTotal'] ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Monthly Total</p>
-                </div>
+        openCreate() {
+            this.editingSub = null;
+            this.showModal = true;
+            this.$nextTick(() => this.fillForm({}));
+        },
+
+        openEdit(data) {
+            this.editingSub = data;
+            this.showModal = true;
+            this.$nextTick(() => this.fillForm(data));
+        },
+
+        fillForm(data) {
+            const s = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = (val !== null && val !== undefined) ? val : '';
+            };
+            const c = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.checked = !!val;
+            };
+            s('sub-name',           data.name           || '');
+            s('sub-provider',       data.provider       || '');
+            s('sub-category',       data.category       || '');
+            s('sub-billing_cycle',  data.billing_cycle  || 'monthly');
+            s('sub-monthly_cost',   data.monthly_cost   ?? '');
+            s('sub-annual_cost',    data.annual_cost    ?? '');
+            s('sub-due_date',       data.due_date ? String(data.due_date).slice(0,10) : '');
+            s('sub-payment_status', data.payment_status || 'unpaid');
+            s('sub-reminder_days',  data.reminder_days  ?? '3');
+            s('sub-notes',          data.notes          || '');
+            c('sub-is_active',      data.is_active !== undefined ? data.is_active : true);
+        },
+
+        closeModal() {
+            this.showModal = false;
+            this.editingSub = null;
+        },
+
+        confirmDelete(formId, name) {
+            SwalDanger.fire({
+                title: 'Delete Subscription?',
+                html: `"<strong>${name}</strong>" will be permanently deleted.`,
+                confirmButtonText: 'Yes, delete!',
+                cancelButtonText: 'Cancel',
+            }).then(r => { if (r.isConfirmed) document.getElementById(formId).submit(); });
+        },
+
+        confirmTogglePayment(formId, current) {
+            const to = current === 'paid' ? 'Unpaid' : 'Paid';
+            SwalNeo.fire({
+                title: `Mark as ${to}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: `Yes, mark ${to}`,
+                cancelButtonText: 'Cancel',
+            }).then(r => { if (r.isConfirmed) document.getElementById(formId).submit(); });
+        },
+
+        confirmToggleActive(formId, current) {
+            const to = current ? 'inactive' : 'active';
+            SwalNeo.fire({
+                title: `Mark as ${to}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: `Yes`,
+                cancelButtonText: 'Cancel',
+            }).then(r => { if (r.isConfirmed) document.getElementById(formId).submit(); });
+        },
+    };
+}
+</script>
+
+<div x-data="subApp()">
+
+    {{-- Stats Bar --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {{-- Monthly Total --}}
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-5 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-hard-hover">
+            <div class="w-12 h-12 bg-primary border-2 border-border-dark rounded-button flex items-center justify-center flex-shrink-0 shadow-hard-sm">
+                <i class="bx bx-receipt text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-lg font-extrabold leading-tight">Rp {{ number_format($stats['monthlyTotal'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-xs font-semibold text-txt-secondary mt-0.5">Monthly Total</p>
             </div>
         </div>
-
-        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-[#F59E0B] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-calendar text-white text-[28px]"></i>
-                </div>
-                <div>
-                    <p class="text-3xl font-extrabold">Rp {{ number_format($stats['annualTotal'] ?? 0, 0, ',', '.') }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Annual Total</p>
-                </div>
+        {{-- Annual Total --}}
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-5 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-hard-hover">
+            <div class="w-12 h-12 bg-[#F59E0B] border-2 border-border-dark rounded-button flex items-center justify-center flex-shrink-0 shadow-hard-sm">
+                <i class="bx bx-calendar text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-lg font-extrabold leading-tight">Rp {{ number_format($stats['annualTotal'] ?? 0, 0, ',', '.') }}</p>
+                <p class="text-xs font-semibold text-txt-secondary mt-0.5">Annual Total</p>
             </div>
         </div>
-
-        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-[#22C55E] rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-check-circle text-white text-[28px]"></i>
-                </div>
-                <div>
-                    <p class="text-3xl font-extrabold">{{ $stats['active'] ?? 0 }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Active</p>
-                </div>
+        {{-- Active --}}
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-5 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-hard-hover">
+            <div class="w-12 h-12 bg-green-500 border-2 border-border-dark rounded-button flex items-center justify-center flex-shrink-0 shadow-hard-sm">
+                <i class="bx bx-check-circle text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold leading-none">{{ $stats['active'] ?? 0 }}</p>
+                <p class="text-xs font-semibold text-txt-secondary mt-0.5">Active</p>
             </div>
         </div>
-
-        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-danger rounded-button flex items-center justify-center shadow-hard flex-shrink-0">
-                    <i class="bx bx-error text-white text-[28px]"></i>
-                </div>
-                <div>
-                    <p class="text-3xl font-extrabold">{{ $stats['unpaid'] ?? 0 }}</p>
-                    <p class="text-sm font-medium text-txt-secondary">Unpaid</p>
-                </div>
+        {{-- Unpaid --}}
+        <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-5 flex items-center gap-4 transition-all hover:-translate-y-1 hover:shadow-hard-hover">
+            <div class="w-12 h-12 bg-danger border-2 border-border-dark rounded-button flex items-center justify-center flex-shrink-0 shadow-hard-sm">
+                <i class="bx bx-error text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-extrabold leading-none">{{ $stats['unpaid'] ?? 0 }}</p>
+                <p class="text-xs font-semibold text-txt-secondary mt-0.5">Unpaid</p>
             </div>
         </div>
     </div>
 
-    {{-- Toolbar --}}
-    <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 mb-8">
-        <form method="GET" action="{{ route('subscriptions.index') }}" class="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                <select name="category" class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
-                    <option value="">All Categories</option>
-                    @foreach ($categories as $cat)
-                        <option value="{{ $cat }}" {{ $categoryFilter === $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
-                    @endforeach
-                </select>
-                <select name="status" class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium text-txt-primary focus:border-primary outline-none transition-colors">
-                    <option value="">All Status</option>
-                    <option value="paid" {{ $statusFilter === 'paid' ? 'selected' : '' }}>Paid</option>
-                    <option value="unpaid" {{ $statusFilter === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
-                </select>
-                <button type="submit" class="px-5 py-3 bg-surface text-txt-primary font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 active:shadow-hard-pressed transition-all duration-200 ease-out w-full sm:w-auto">
-                    <i class="bx bx-filter mr-1"></i> Filter
-                </button>
-            </div>
-            <button type="button" onclick="openAddModal()" class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 active:shadow-hard-pressed transition-all duration-200 ease-out flex items-center gap-2 w-full sm:w-auto">
-                <i class="bx bx-plus text-lg"></i>
-                New Subscription
+    {{-- Toolbar Card --}}
+    <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-5 mb-6">
+        <form method="GET" action="{{ route('subscriptions.index') }}"
+              class="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
+            <select name="category"
+                class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
+                <option value="">All Categories</option>
+                @foreach ($categories as $cat)
+                    <option value="{{ $cat }}" {{ $categoryFilter === $cat ? 'selected' : '' }}>{{ ucfirst($cat) }}</option>
+                @endforeach
+            </select>
+            <select name="status"
+                class="px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
+                <option value="">All Status</option>
+                <option value="paid"   {{ $statusFilter === 'paid'   ? 'selected' : '' }}>Paid</option>
+                <option value="unpaid" {{ $statusFilter === 'unpaid' ? 'selected' : '' }}>Unpaid</option>
+            </select>
+            <button type="submit"
+                class="px-4 py-3 bg-surface font-bold text-sm rounded-button border-4 border-border-dark shadow-hard-sm hover:-translate-y-0.5 transition-all">
+                <i class="bx bx-filter-alt mr-1"></i> Filter
+            </button>
+            <button type="button" @click="openCreate()"
+                class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 transition-all sm:ml-auto flex items-center gap-2">
+                <i class="bx bx-plus text-lg"></i> New Subscription
             </button>
         </form>
     </div>
 
+    {{-- Flash --}}
+    @if (session('success'))
+        <div class="mb-5 px-5 py-4 bg-surface border-4 border-green-500 rounded-card shadow-hard flex items-center gap-3">
+            <i class="bx bx-check-circle text-green-500 text-2xl"></i>
+            <span class="font-semibold text-sm">{{ session('success') }}</span>
+        </div>
+    @endif
 
+    {{-- Category color map --}}
+    @php
+    $catColors = [
+        'software'      => ['bg' => 'bg-blue-100',   'text' => 'text-blue-700',   'border' => 'border-blue-400',   'icon' => 'bx-code-alt'],
+        'hosting'       => ['bg' => 'bg-purple-100',  'text' => 'text-purple-700', 'border' => 'border-purple-400', 'icon' => 'bx-server'],
+        'design'        => ['bg' => 'bg-pink-100',    'text' => 'text-pink-700',   'border' => 'border-pink-400',   'icon' => 'bx-palette'],
+        'marketing'     => ['bg' => 'bg-orange-100',  'text' => 'text-orange-700', 'border' => 'border-orange-400', 'icon' => 'bx-bullseye'],
+        'cloud'         => ['bg' => 'bg-cyan-100',    'text' => 'text-cyan-700',   'border' => 'border-cyan-400',   'icon' => 'bx-cloud'],
+        'security'      => ['bg' => 'bg-red-100',     'text' => 'text-red-700',    'border' => 'border-red-400',    'icon' => 'bx-shield'],
+        'analytics'     => ['bg' => 'bg-indigo-100',  'text' => 'text-indigo-700', 'border' => 'border-indigo-400', 'icon' => 'bx-bar-chart'],
+        'communication' => ['bg' => 'bg-teal-100',    'text' => 'text-teal-700',   'border' => 'border-teal-400',   'icon' => 'bx-message'],
+        'education'     => ['bg' => 'bg-yellow-100',  'text' => 'text-yellow-700', 'border' => 'border-yellow-400', 'icon' => 'bx-book'],
+        'payment'       => ['bg' => 'bg-green-100',   'text' => 'text-green-700',  'border' => 'border-green-400',  'icon' => 'bx-credit-card'],
+        'storage'       => ['bg' => 'bg-amber-100',   'text' => 'text-amber-700',  'border' => 'border-amber-400',  'icon' => 'bx-hdd'],
+        'devtools'      => ['bg' => 'bg-slate-100',   'text' => 'text-slate-700',  'border' => 'border-slate-400',  'icon' => 'bx-terminal'],
+        'vpn'           => ['bg' => 'bg-emerald-100', 'text' => 'text-emerald-700','border' => 'border-emerald-400','icon' => 'bx-lock'],
+        'email'         => ['bg' => 'bg-violet-100',  'text' => 'text-violet-700', 'border' => 'border-violet-400', 'icon' => 'bx-envelope'],
+    ];
+    $defaultCat = ['bg' => 'bg-gray-100', 'text' => 'text-gray-600', 'border' => 'border-gray-400', 'icon' => 'bx-grid-alt'];
+    @endphp
 
-    {{-- Subscription Cards Grid --}}
+    {{-- Empty state --}}
     @if ($subscriptions->isEmpty())
-        <div class="flex flex-col items-center justify-center py-16 bg-surface border-4 border-border-dark rounded-card shadow-hard">
-            <i class="bx bx-receipt text-6xl text-txt-secondary"></i>
+        <div class="flex flex-col items-center justify-center py-20 bg-surface border-4 border-border-dark rounded-card shadow-hard">
+            <i class="bx bx-receipt text-7xl text-txt-secondary"></i>
             <h3 class="text-xl font-extrabold mt-4">No subscriptions yet</h3>
-            <p class="text-txt-secondary mt-2">Add your first subscription to get started</p>
+            <p class="text-txt-secondary mt-2 text-sm">Add your first subscription to track expenses</p>
+            <button type="button" @click="openCreate()"
+                class="mt-5 px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 transition-all">
+                <i class="bx bx-plus mr-1"></i> New Subscription
+            </button>
         </div>
     @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach ($subscriptions as $sub)
                 @php
-                    $categoryIcons = [
-                        'software'      => 'bx-code',
-                        'hosting'       => 'bx-server',
-                        'design'        => 'bx-palette',
-                        'marketing'     => 'bx-bullseye',
-                        'office'        => 'bx-folder',
-                        'cloud'         => 'bx-cloud',
-                        'security'      => 'bx-shield',
-                        'analytics'     => 'bx-bar-chart',
-                        'communication' => 'bx-message',
-                        'education'     => 'bx-book',
-                        'payment'       => 'bx-credit-card',
-                        'social'        => 'bx-share-alt',
-                        'email'         => 'bx-envelope',
-                        'storage'       => 'bx-hard-drive',
-                        'database'      => 'bx-data',
-                        'vpn'           => 'bx-lock',
-                        'monitoring'    => 'bx-task',
-                        'backup'        => 'bx-data',
-                        'api'           => 'bx-key',
-                        'devtools'      => 'bx-terminal',
-                    ];
-                    $iconName = $categoryIcons[strtolower($sub->category)] ?? 'bx-grid-alt';
-                    $isPaid   = $sub->payment_status === 'paid';
+                    $catKey  = strtolower($sub->category ?? '');
+                    $cc      = $catColors[$catKey] ?? $defaultCat;
+                    $isPaid  = $sub->payment_status === 'paid';
+                    $isOver  = !$isPaid && $sub->due_date && $sub->due_date->isPast();
+                    $cost    = $sub->billing_cycle === 'monthly'
+                                ? ($sub->monthly_cost ?? 0)
+                                : ($sub->annual_cost ?? ($sub->monthly_cost ?? 0) * 12);
                 @endphp
-                <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-6 transition-all duration-200 ease-out hover:-translate-y-1.5 hover:shadow-hard-hover flex flex-col">
+                <div class="bg-surface border-4 border-border-dark rounded-card shadow-hard p-5 flex flex-col transition-all duration-200 hover:-translate-y-1.5 hover:shadow-hard-hover {{ !$sub->is_active ? 'opacity-60' : '' }}">
 
-                    {{-- Card Header --}}
-                    <div class="flex items-start gap-4 mb-4">
-                        <div class="w-12 h-12 bg-primary/10 rounded-button flex items-center justify-center shadow-hard-sm flex-shrink-0">
-                            <i class="bx {{ $iconName }} text-primary text-xl"></i>
+                    {{-- Header --}}
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="w-11 h-11 {{ $cc['bg'] }} border-2 {{ $cc['border'] }} rounded-button flex items-center justify-center flex-shrink-0">
+                            <i class="bx {{ $cc['icon'] }} {{ $cc['text'] }} text-xl"></i>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <h3 class="font-extrabold text-sm leading-tight truncate">{{ $sub->name }}</h3>
+                            <h3 class="font-extrabold text-sm leading-snug truncate">{{ $sub->name }}</h3>
                             @if ($sub->provider)
                                 <p class="text-xs text-txt-secondary mt-0.5">{{ $sub->provider }}</p>
                             @endif
                         </div>
                         <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                            <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-bold border-2 border-border-dark rounded-full bg-primary/10 text-primary">
+                            {{-- Paid/Unpaid badge --}}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-bold border-2 rounded-full
+                                {{ $isPaid ? 'bg-green-100 text-green-700 border-green-400' : ($isOver ? 'bg-red-100 text-red-700 border-red-400' : 'bg-orange-100 text-orange-700 border-orange-400') }}">
+                                <i class="bx {{ $isPaid ? 'bx-check' : 'bx-x' }} text-xs"></i>
+                                {{ $isPaid ? 'Paid' : ($isOver ? 'Overdue' : 'Unpaid') }}
+                            </span>
+                            {{-- Billing cycle --}}
+                            <span class="inline-flex items-center px-2 py-0.5 text-xs font-bold border-2 border-border-dark rounded-full bg-primary/10 text-primary">
                                 {{ ucfirst($sub->billing_cycle) }}
                             </span>
-                            <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-bold border-2 border-border-dark rounded-full {{ $isPaid ? 'bg-[#22C55E] text-white' : 'bg-danger text-white' }}">
-                                {{ ucfirst($sub->payment_status) }}
+                        </div>
+                    </div>
+
+                    {{-- Cost highlight --}}
+                    <div class="bg-bgmain border-2 border-border-dark rounded-button px-4 py-3 mb-4 flex items-center justify-between">
+                        <span class="text-xs font-semibold text-txt-secondary">
+                            {{ $sub->billing_cycle === 'monthly' ? 'Monthly' : 'Annual' }} Cost
+                        </span>
+                        <span class="text-lg font-extrabold text-txt-primary">
+                            Rp {{ number_format($cost, 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    {{-- Details --}}
+                    <div class="space-y-2 text-xs mb-4 flex-1">
+                        @if ($sub->category)
+                            <div class="flex items-center justify-between">
+                                <span class="text-txt-secondary flex items-center gap-1"><i class="bx bx-category"></i> Category</span>
+                                <span class="font-bold px-2 py-0.5 border-2 {{ $cc['border'] }} {{ $cc['bg'] }} {{ $cc['text'] }} rounded-full">
+                                    {{ ucfirst($sub->category) }}
+                                </span>
+                            </div>
+                        @endif
+                        <div class="flex items-center justify-between">
+                            <span class="text-txt-secondary flex items-center gap-1"><i class="bx bx-calendar"></i> Due Date</span>
+                            <span class="font-semibold {{ $isOver ? 'text-danger' : '' }}">
+                                {{ $sub->due_date?->format('d M Y') ?? '-' }}
+                                @if ($isOver) <i class="bx bx-error-circle text-danger"></i> @endif
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-txt-secondary flex items-center gap-1"><i class="bx bx-bell"></i> Reminder</span>
+                            <span class="font-semibold">{{ $sub->reminder_days ?? 0 }} days before</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-txt-secondary flex items-center gap-1"><i class="bx bx-toggle-right"></i> Status</span>
+                            <span class="font-bold {{ $sub->is_active ? 'text-green-600' : 'text-txt-secondary' }}">
+                                {{ $sub->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </div>
                     </div>
 
-                    {{-- Card Body --}}
-                    <div class="space-y-2 text-sm mb-4 flex-1">
-                        @if ($sub->category)
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-txt-secondary flex items-center gap-1.5"><i class="bx bx-category text-base"></i> Category</span>
-                                <span class="font-semibold">{{ ucfirst($sub->category) }}</span>
-                            </div>
-                        @endif
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-txt-secondary flex items-center gap-1.5"><i class="bx bx-dollar-circle text-base"></i> Cost</span>
-                            <span class="font-extrabold">Rp {{ number_format($sub->billing_cycle === 'monthly' ? ($sub->monthly_cost ?? 0) : ($sub->annual_cost ?? ($sub->monthly_cost ?? 0) * 12), 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-txt-secondary flex items-center gap-1.5"><i class="bx bx-calendar text-base"></i> Due</span>
-                            <span class="font-semibold whitespace-nowrap">{{ $sub->due_date?->format('d M Y') ?? '-' }}</span>
-                        </div>
-                        @if ($sub->reminder_days)
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="text-txt-secondary flex items-center gap-1.5"><i class="bx bx-bell text-base"></i> Reminder</span>
-                                <span class="font-semibold">{{ $sub->reminder_days }} days before</span>
-                            </div>
-                        @endif
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="text-txt-secondary flex items-center gap-1.5"><i class="bx bx-toggle text-base"></i> Active</span>
-                            <span class="font-semibold {{ $sub->is_active ? 'text-[#22C55E]' : 'text-txt-secondary' }}">{{ $sub->is_active ? 'Yes' : 'No' }}</span>
-                        </div>
-                    </div>
-
-                    {{-- Action Buttons --}}
-                    <div class="flex items-center gap-2 pt-4 border-t-4 border-border-dark mt-auto">
-                        <form id="toggle-payment-form-{{ $sub->id }}" action="{{ route('subscriptions.toggle-payment', $sub) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <button type="button" onclick="togglePayment({{ $sub->id }}, '{{ $sub->payment_status }}')"
-                                class="flex-1 px-3 py-2 font-bold text-xs rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 active:translate-y-0.5 transition-all duration-200 ease-out flex items-center justify-center gap-1.5 {{ $isPaid ? 'text-[#22C55E]' : 'text-danger' }}">
-                                <i class="bx {{ $isPaid ? 'bx-check' : 'bx-x' }} text-sm"></i>
-                                {{ $isPaid ? 'Paid' : 'Unpaid' }}
+                    {{-- Actions --}}
+                    <div class="flex items-center gap-2 pt-3 border-t-4 border-border-dark mt-auto">
+                        {{-- Toggle Payment --}}
+                        <form id="tp-{{ $sub->id }}" method="POST" action="{{ route('subscriptions.toggle-payment', $sub) }}">
+                            @csrf @method('PATCH')
+                            <button type="button"
+                                @click="confirmTogglePayment('tp-{{ $sub->id }}', '{{ $sub->payment_status }}')"
+                                class="px-3 py-2 text-xs font-bold rounded-button border-4 border-border-dark shadow-hard-sm hover:-translate-y-0.5 transition-all
+                                    {{ $isPaid ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700' }}">
+                                <i class="bx {{ $isPaid ? 'bx-check-circle' : 'bx-time-five' }} text-sm"></i>
                             </button>
                         </form>
-                        <form id="toggle-active-form-{{ $sub->id }}" action="{{ route('subscriptions.toggle-active', $sub) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <button type="button" onclick="toggleActive({{ $sub->id }}, {{ $sub->is_active ? 'true' : 'false' }})"
-                                class="px-3 py-2 font-bold text-xs rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 active:translate-y-0.5 transition-all duration-200 ease-out {{ $sub->is_active ? 'text-primary' : 'text-txt-secondary' }}">
+                        {{-- Toggle Active --}}
+                        <form id="ta-{{ $sub->id }}" method="POST" action="{{ route('subscriptions.toggle-active', $sub) }}">
+                            @csrf @method('PATCH')
+                            <button type="button"
+                                @click="confirmToggleActive('ta-{{ $sub->id }}', {{ $sub->is_active ? 'true' : 'false' }})"
+                                class="px-3 py-2 text-xs font-bold rounded-button border-4 border-border-dark shadow-hard-sm hover:-translate-y-0.5 transition-all
+                                    {{ $sub->is_active ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-txt-secondary' }}">
                                 <i class="bx {{ $sub->is_active ? 'bx-toggle-right' : 'bx-toggle-left' }} text-base"></i>
                             </button>
                         </form>
-                        <button type="button" onclick="openEditModal({{ json_encode($sub) }})"
-                            class="px-3 py-2 font-bold text-xs rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 active:translate-y-0.5 transition-all duration-200 ease-out text-txt-secondary hover:text-primary">
-                            <i class="bx bx-edit text-base"></i>
+                        {{-- Edit --}}
+                        <button type="button" @click="openEdit({{ Js::from($sub) }})"
+                            class="px-3 py-2 text-xs font-bold rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 transition-all text-txt-secondary hover:text-primary">
+                            <i class="bx bx-edit-alt text-base"></i>
                         </button>
-                        <form id="delete-form-sub-{{ $sub->id }}" action="{{ route('subscriptions.destroy', $sub) }}" method="POST" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" onclick="deleteSub('delete-form-sub-{{ $sub->id }}')"
-                                class="px-3 py-2 font-bold text-xs rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 active:translate-y-0.5 transition-all duration-200 ease-out text-danger">
-                                <i class="bx bx-trash text-base"></i>
+                        {{-- Delete --}}
+                        <form id="del-{{ $sub->id }}" method="POST" action="{{ route('subscriptions.destroy', $sub) }}" class="ml-auto">
+                            @csrf @method('DELETE')
+                            <button type="button"
+                                @click="confirmDelete('del-{{ $sub->id }}', {{ Js::from($sub->name) }})"
+                                class="px-3 py-2 text-xs font-bold rounded-button border-4 border-border-dark bg-surface shadow-hard-sm hover:-translate-y-0.5 transition-all text-danger hover:bg-danger hover:text-white">
+                                <i class="bx bx-trash-alt text-base"></i>
                             </button>
                         </form>
                     </div>
                 </div>
             @endforeach
         </div>
+
+        {{-- Pagination --}}
+        @if ($subscriptions->hasPages())
+            <div class="mt-8">{{ $subscriptions->links() }}</div>
+        @endif
     @endif
 
-    {{-- Pagination --}}
-    <div class="mt-8">
-        {{ $subscriptions->links() }}
-    </div>
+    {{-- ============================================================
+         MODAL: Add / Edit Subscription
+    ============================================================ --}}
+    <div x-show="showModal"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @keydown.escape.window="closeModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto"
+        style="display:none;">
 
+        <div @click.stop
+            x-show="showModal"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="scale-95 opacity-0"
+            x-transition:enter-end="scale-100 opacity-100"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="scale-100 opacity-100"
+            x-transition:leave-end="scale-95 opacity-0"
+            class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-lg my-4"
+            style="display:none;">
 
-
-    {{-- Add/Edit Subscription Modal --}}
-    <div id="subscription-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" style="display:none;" onclick="handleModalBackdropClick(event)">
-        <div id="subscription-modal-box" class="bg-surface border-4 border-border-dark rounded-modal shadow-hard w-full max-w-lg">
-
-            <div class="flex items-center justify-between px-6 py-4 border-b-4 border-border-dark">
-                <h3 id="modal-title" class="text-lg font-extrabold">New Subscription</h3>
-                <button type="button" onclick="closeModal()" class="text-2xl text-txt-secondary hover:text-danger transition-colors">
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b-4 border-border-dark sticky top-0 bg-surface rounded-t-modal z-10">
+                <h3 class="text-lg font-extrabold" x-text="editingSub ? 'Edit Subscription' : 'New Subscription'"></h3>
+                <button @click="closeModal()" class="text-2xl text-txt-secondary hover:text-danger transition-colors">
                     <i class="bx bx-x"></i>
                 </button>
             </div>
 
-            <form id="subscription-form" method="POST" action="{{ route('subscriptions.store') }}" class="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+            {{-- Form --}}
+            <form method="POST"
+                  :action="editingSub ? '/subscriptions/' + editingSub.id : '{{ route('subscriptions.store') }}'"
+                  class="p-6 space-y-4 overflow-y-auto max-h-[75vh]">
                 @csrf
-                <input type="hidden" name="_method" id="form-method" value="">
+                <input type="hidden" name="_method" :value="editingSub ? 'PATCH' : 'POST'">
 
+                {{-- Name --}}
                 <div>
-                    <label for="sub-name" class="block text-sm font-semibold text-txt-primary mb-1.5">Name</label>
-                    <input type="text" id="sub-name" name="name" required
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                        placeholder="Subscription name">
+                    <label class="block text-sm font-bold mb-1.5">Name <span class="text-danger">*</span></label>
+                    <input type="text" id="sub-name" name="name" required maxlength="255"
+                        placeholder="E.g. GitHub Pro"
+                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
                 </div>
 
+                {{-- Provider --}}
                 <div>
-                    <label for="sub-provider" class="block text-sm font-semibold text-txt-primary mb-1.5">Provider</label>
-                    <input type="text" id="sub-provider" name="provider"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                        placeholder="e.g. AWS, Stripe">
+                    <label class="block text-sm font-bold mb-1.5">Provider</label>
+                    <input type="text" id="sub-provider" name="provider" maxlength="255"
+                        placeholder="E.g. GitHub, AWS"
+                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors">
                 </div>
 
+                {{-- Category + Billing Cycle --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="sub-category" class="block text-sm font-semibold text-txt-primary mb-1.5">Category</label>
-                        <input type="text" id="sub-category" name="category"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="e.g. Software">
+                        <label class="block text-sm font-bold mb-1.5">Category</label>
+                        <input type="text" id="sub-category" name="category" maxlength="100"
+                            placeholder="E.g. Software"
+                            list="cat-options"
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
+                        <datalist id="cat-options">
+                            <option value="Software"><option value="Hosting"><option value="Cloud">
+                            <option value="Design"><option value="Marketing"><option value="Security">
+                            <option value="Analytics"><option value="DevTools"><option value="Email">
+                            <option value="Storage"><option value="VPN"><option value="Education">
+                        </datalist>
                     </div>
                     <div>
-                        <label for="sub-billing_cycle" class="block text-sm font-semibold text-txt-primary mb-1.5">Billing Cycle</label>
+                        <label class="block text-sm font-bold mb-1.5">Billing Cycle</label>
                         <select id="sub-billing_cycle" name="billing_cycle"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
                             <option value="monthly">Monthly</option>
                             <option value="quarterly">Quarterly</option>
                             <option value="yearly">Yearly</option>
@@ -279,201 +404,78 @@
                     </div>
                 </div>
 
+                {{-- Monthly + Annual Cost --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label for="sub-monthly_cost" class="block text-sm font-semibold text-txt-primary mb-1.5">Monthly Cost</label>
-                        <input type="number" id="sub-monthly_cost" name="monthly_cost" step="0.01" min="0"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="0.00">
-                    </div>
-                    <div>
-                        <label for="sub-annual_cost" class="block text-sm font-semibold text-txt-primary mb-1.5">Annual Cost</label>
-                        <input type="number" id="sub-annual_cost" name="annual_cost" step="0.01" min="0"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none transition-colors"
-                            placeholder="0.00">
-                    </div>
-                </div>
-
-                <div>
-                    <label for="sub-due_date" class="block text-sm font-semibold text-txt-primary mb-1.5">Due Date</label>
-                    <input type="date" id="sub-due_date" name="due_date" required
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="sub-payment_status" class="block text-sm font-semibold text-txt-primary mb-1.5">Payment Status</label>
-                        <select id="sub-payment_status" name="payment_status"
+                        <label class="block text-sm font-bold mb-1.5">Monthly Cost</label>
+                        <input type="number" id="sub-monthly_cost" name="monthly_cost"
+                            step="0.01" min="0" placeholder="0"
                             class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
-                            <option value="unpaid">Unpaid</option>
-                            <option value="paid">Paid</option>
-                        </select>
                     </div>
                     <div>
-                        <label for="sub-reminder_days" class="block text-sm font-semibold text-txt-primary mb-1.5">Reminder Days</label>
-                        <input type="number" id="sub-reminder_days" name="reminder_days" min="0" max="90"
-                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors"
-                            placeholder="0">
+                        <label class="block text-sm font-bold mb-1.5">Annual Cost</label>
+                        <input type="number" id="sub-annual_cost" name="annual_cost"
+                            step="0.01" min="0" placeholder="0"
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
                     </div>
                 </div>
 
+                {{-- Due Date + Reminder --}}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-1.5">Due Date <span class="text-danger">*</span></label>
+                        <input type="date" id="sub-due_date" name="due_date" required
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1.5">Reminder (days)</label>
+                        <input type="number" id="sub-reminder_days" name="reminder_days"
+                            min="0" max="90" placeholder="3"
+                            class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none transition-colors">
+                    </div>
+                </div>
+
+                {{-- Payment Status --}}
                 <div>
-                    <label for="sub-notes" class="block text-sm font-semibold text-txt-primary mb-1.5">Notes</label>
-                    <textarea id="sub-notes" name="notes" rows="3"
-                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none resize-none"
-                        placeholder="Optional notes..."></textarea>
+                    <label class="block text-sm font-bold mb-1.5">Payment Status</label>
+                    <select id="sub-payment_status" name="payment_status"
+                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium focus:border-primary outline-none">
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                    </select>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="sub-is_active" name="is_active" value="1"
-                            class="w-4 h-4 accent-primary rounded border-4 border-border-dark">
-                        <span class="text-sm font-medium text-txt-primary">Active</span>
-                    </label>
+                {{-- Notes --}}
+                <div>
+                    <label class="block text-sm font-bold mb-1.5">Notes</label>
+                    <textarea id="sub-notes" name="notes" rows="2"
+                        placeholder="Optional notes..."
+                        class="w-full px-4 py-3 rounded-input border-4 border-border-dark bg-surface text-sm font-medium placeholder:text-txt-secondary focus:border-primary outline-none resize-none transition-colors"></textarea>
                 </div>
 
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeModal()"
-                        class="px-6 py-3 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all duration-200 ease-out">
+                {{-- Active checkbox --}}
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="sub-is_active" name="is_active" value="1"
+                        class="w-4 h-4 accent-primary">
+                    <span class="text-sm font-medium">Active</span>
+                    <i class="bx bx-check-circle text-green-500 text-base"></i>
+                </label>
+
+                {{-- Footer --}}
+                <div class="flex justify-end gap-3 pt-2 border-t-4 border-border-dark">
+                    <button type="button" @click="closeModal()"
+                        class="px-6 py-3 font-bold text-sm rounded-button border-4 border-border-dark bg-surface shadow-hard hover:-translate-y-0.5 transition-all">
                         Cancel
                     </button>
-                    <button type="submit" id="modal-submit-btn"
-                        class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 active:shadow-hard-pressed transition-all duration-200 ease-out">
-                        Create Subscription
+                    <button type="submit"
+                        class="px-6 py-3 bg-primary text-white font-bold text-sm rounded-button border-4 border-border-dark shadow-hard hover:-translate-y-0.5 active:translate-y-1 transition-all">
+                        <i class="bx bx-save mr-1"></i>
+                        <span x-text="editingSub ? 'Update' : 'Save'"></span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-
-
-    <script>
-        // ── Modal helpers ─────────────────────────────────────────────────────────
-        var STORE_URL  = @json(route('subscriptions.store'));
-        var UPDATE_URL = @json(route('subscriptions.update', ['__ID__']));
-
-        function setVal(id, val) {
-            var el = document.getElementById(id);
-            if (el) el.value = val !== null && val !== undefined ? val : '';
-        }
-
-        function openAddModal() {
-            document.getElementById('modal-title').textContent      = 'New Subscription';
-            document.getElementById('modal-submit-btn').textContent = 'Create Subscription';
-            document.getElementById('subscription-form').action     = STORE_URL;
-            document.getElementById('form-method').value            = '';
-
-            setVal('sub-name',           '');
-            setVal('sub-provider',       '');
-            setVal('sub-category',       '');
-            setVal('sub-billing_cycle',  'monthly');
-            setVal('sub-monthly_cost',   '');
-            setVal('sub-annual_cost',    '');
-            setVal('sub-due_date',       '');
-            setVal('sub-payment_status', 'unpaid');
-            setVal('sub-reminder_days',  '0');
-            setVal('sub-notes',          '');
-            document.getElementById('sub-is_active').checked = true;
-
-            document.getElementById('subscription-modal').style.display = 'flex';
-        }
-
-        function openEditModal(sub) {
-            document.getElementById('modal-title').textContent      = 'Edit Subscription';
-            document.getElementById('modal-submit-btn').textContent = 'Update Subscription';
-            document.getElementById('subscription-form').action     = UPDATE_URL.replace('__ID__', sub.id);
-            document.getElementById('form-method').value            = 'PUT';
-
-            setVal('sub-name',           sub.name        || '');
-            setVal('sub-provider',       sub.provider    || '');
-            setVal('sub-category',       sub.category    || '');
-            setVal('sub-billing_cycle',  sub.billing_cycle || 'monthly');
-            setVal('sub-monthly_cost',   sub.monthly_cost !== null ? sub.monthly_cost : '');
-            setVal('sub-annual_cost',    sub.annual_cost  !== null ? sub.annual_cost  : '');
-
-            // due_date may come as "YYYY-MM-DD HH:MM:SS" — take first 10 chars
-            var dueDate = sub.due_date ? String(sub.due_date).slice(0, 10) : '';
-            setVal('sub-due_date', dueDate);
-
-            setVal('sub-payment_status', sub.payment_status || 'unpaid');
-            setVal('sub-reminder_days',  sub.reminder_days  !== null ? sub.reminder_days : '0');
-            setVal('sub-notes',          sub.notes          || '');
-
-            document.getElementById('sub-is_active').checked = (sub.is_active === true || sub.is_active === 1);
-
-            document.getElementById('subscription-modal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('subscription-modal').style.display = 'none';
-        }
-
-        function handleModalBackdropClick(event) {
-            if (event.target === document.getElementById('subscription-modal')) {
-                closeModal();
-            }
-        }
-
-        // ── SweetAlert helpers ────────────────────────────────────────────────────
-        var SWAL_COMMON = {
-            background: '#FFFFFF',
-            customClass: { popup: 'border-4 border-border-dark rounded-modal shadow-hard' }
-        };
-
-        function deleteSub(formId) {
-            Swal.fire(Object.assign({}, SWAL_COMMON, {
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Batal'
-            })).then(function(result) {
-                if (result.isConfirmed) {
-                    document.getElementById(formId).submit();
-                }
-            });
-        }
-
-        function togglePayment(subId, currentStatus) {
-            var from = currentStatus === 'paid' ? 'Paid' : 'Unpaid';
-            var to   = currentStatus === 'paid' ? 'Unpaid' : 'Paid';
-            Swal.fire(Object.assign({}, SWAL_COMMON, {
-                title: 'Toggle Payment Status?',
-                text: 'This will change payment status from ' + from + ' to ' + to + '.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#4F46E5',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, toggle',
-                cancelButtonText: 'Cancel'
-            })).then(function(result) {
-                if (result.isConfirmed) {
-                    document.getElementById('toggle-payment-form-' + subId).submit();
-                }
-            });
-        }
-
-        function toggleActive(subId, currentActive) {
-            var to = currentActive ? 'inactive' : 'active';
-            Swal.fire(Object.assign({}, SWAL_COMMON, {
-                title: 'Toggle Active Status?',
-                text: 'This will change the active status to ' + to + '.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#4F46E5',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, toggle',
-                cancelButtonText: 'Cancel'
-            })).then(function(result) {
-                if (result.isConfirmed) {
-                    document.getElementById('toggle-active-form-' + subId).submit();
-                }
-            });
-        }
-    </script>
-
+</div>{{-- end x-data --}}
 @endsection

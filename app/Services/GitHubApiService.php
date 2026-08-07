@@ -13,8 +13,8 @@ class GitHubApiService
 
     public function __construct()
     {
-        $this->token = config('github.token', '');
-        $this->username = config('github.username', '');
+        $this->token = (string) (config('github.token') ?? '');
+        $this->username = (string) (config('github.username') ?? '');
     }
 
     public function isConfigured(): bool

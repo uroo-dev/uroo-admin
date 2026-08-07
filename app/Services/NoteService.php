@@ -23,12 +23,20 @@ class NoteService
         return compact('total', 'pinned', 'favorites', 'byCategory');
     }
 
+    public function parseTags(string $tags): array
+    {
+        return array_values(array_filter(
+            array_map('trim', explode(',', $tags)),
+            fn (string $tag) => $tag !== ''
+        ));
+    }
+
     public function search(string $query)
     {
         return Note::where('user_id', Auth::id())
             ->where(function ($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('content', 'like', "%{$query}%");
+                    ->orWhere('content', 'like', "%{$query}%");
             })
             ->orderBy('is_pinned', 'desc')
             ->orderBy('updated_at', 'desc')

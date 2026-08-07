@@ -9,11 +9,11 @@ class BookmarkController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Bookmark::query();
+        $userId = auth()->id();
+        $query = Bookmark::where('user_id', $userId);
         $search = $request->input('search', '');
         $category = $request->input('category', '');
         $showFavorites = $request->boolean('favorites');
-        $viewMode = $request->input('view', 'grid');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -34,39 +34,63 @@ class BookmarkController extends Controller
             ->paginate(24)
             ->appends($request->query());
 
-        $categories = Bookmark::select('category')->whereNotNull('category')->distinct()->orderBy('category')->pluck('category');
+        $categories = Bookmark::where('user_id', $userId)
+            ->whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
 
-        return view('bookmarks.index', compact('bookmarks', 'categories', 'search', 'category', 'showFavorites', 'viewMode'));
+        $totalCount = Bookmark::where('user_id', $userId)->count();
+        $favoritesCount = Bookmark::where('user_id', $userId)->where('is_favorite', true)->count();
+
+        return view('bookmarks.index', compact(
+            'bookmarks', 'categories', 'search', 'category',
+            'showFavorites', 'totalCount', 'favoritesCount'
+        ));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'url' => 'required|url|max:2048',
-            'description' => 'nullable|string|max:1000',
-            'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|array',
-            'logo_url' => 'nullable|url|max:2048',
-            'is_favorite' => 'boolean',
+            'title'      => 'required|string|max:255',
+            'url'        => 'required|url|max:2048',
+            'description'=> 'nullable|string|max:1000',
+            'category'   => 'nullable|string|max:100',
+            'tags_input' => 'nullable|string|max:500',
+            'logo_url'   => 'nullable|url|max:2048',
+            'is_favorite'=> 'nullable|boolean',
         ]);
+
+        $data['tags'] = $this->parseTags($data['tags_input'] ?? '');
+        $data['is_favorite'] = $request->boolean('is_favorite');
+        unset($data['tags_input']);
+
         auth()->user()->bookmarks()->create($data);
-        return redirect()->route('bookmarks.index')->with('success', 'Bookmark created successfully.');
+
+        return redirect()->route('bookmarks.index')->with('success', 'Bookmark saved successfully.');
     }
 
     public function update(Request $request, Bookmark $bookmark)
     {
         $this->authorize('update', $bookmark);
+
         $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'url' => 'required|url|max:2048',
-            'description' => 'nullable|string|max:1000',
-            'category' => 'nullable|string|max:100',
-            'tags' => 'nullable|array',
-            'logo_url' => 'nullable|url|max:2048',
-            'is_favorite' => 'boolean',
+            'title'      => 'required|string|max:255',
+            'url'        => 'required|url|max:2048',
+            'description'=> 'nullable|string|max:1000',
+            'category'   => 'nullable|string|max:100',
+            'tags_input' => 'nullable|string|max:500',
+            'logo_url'   => 'nullable|url|max:2048',
+            'is_favorite'=> 'nullable|boolean',
         ]);
+
+        $data['tags'] = $this->parseTags($data['tags_input'] ?? '');
+        $data['is_favorite'] = $request->boolean('is_favorite');
+        unset($data['tags_input']);
+
         $bookmark->update($data);
+
         return redirect()->route('bookmarks.index')->with('success', 'Bookmark updated successfully.');
     }
 
@@ -74,13 +98,30 @@ class BookmarkController extends Controller
     {
         $this->authorize('delete', $bookmark);
         $bookmark->delete();
-        return redirect()->route('bookmarks.index')->with('success', 'Bookmark deleted successfully.');
+
+        return redirect()->route('bookmarks.index')->with('success', 'Bookmark deleted.');
     }
 
     public function toggleFavorite(Bookmark $bookmark)
     {
         $this->authorize('update', $bookmark);
-        $bookmark->update(['is_favorite' => !$bookmark->is_favorite]);
+        $bookmark->update(['is_favorite' => ! $bookmark->is_favorite]);
+
         return redirect()->route('bookmarks.index');
+    }
+
+    // ── Private helpers ──────────────────────────────────────────
+
+    private function parseTags(?string $raw): array
+    {
+        if (empty($raw)) {
+            return [];
+        }
+
+        return array_values(
+            array_filter(
+                array_map('trim', explode(',', $raw))
+            )
+        );
     }
 }

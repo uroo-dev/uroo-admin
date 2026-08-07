@@ -42,7 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('bookmarks', BookmarkController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('ideas', IdeaController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::resource('brain-dumps', BrainDumpController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::resource('savings', SavingsController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::resource('savings', SavingsController::class)->only(['index', 'store', 'update', 'destroy'])->parameters(['savings' => 'goal']);
     Route::resource('subscriptions', SubscriptionController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // Extra routes for features with additional actions
