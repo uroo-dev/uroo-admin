@@ -71,7 +71,7 @@ class IdeasScreen extends ConsumerWidget {
                       Text(
                         idea.tagline!,
                         style: const TextStyle(
-                            color: AppColors.primary, fontWeight: FontWeight.w700),
+                            color: AppColors.txtSecondary, fontSize: 14),
                       ),
                     ],
                     if (idea.description != null && idea.description!.isNotEmpty) ...[
@@ -90,9 +90,8 @@ class IdeasScreen extends ConsumerWidget {
                       runSpacing: 6,
                       children: [
                         NeoBadge(label: idea.status, color: AppColors.statusColor(idea.status)),
-                        NeoBadge(label: idea.platform, color: AppColors.purpleAccent),
-                        for (final t in idea.techStack.take(2))
-                          NeoBadge(label: t, color: AppColors.borderDark),
+                        NeoBadge(label: idea.platform, color: AppColors.secondary),
+                        for (final t in idea.techStack.take(2)) _TechChip(label: t),
                       ],
                     ),
                   ],
@@ -120,4 +119,29 @@ Widget refreshable<T>(
     ),
     data: builder,
   );
+}
+
+class _TechChip extends StatelessWidget {
+  final String label;
+
+  const _TechChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: AppColors.primary,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
 }

@@ -151,11 +151,11 @@ class DashboardScreen extends ConsumerWidget {
   Widget _statsGrid(DashboardData d) {
     final stats = [
       ('Project Aktif', d.activeProjects, Icons.folder_copy,
-          AppColors.purpleAccent),
+          AppColors.primary),
       ('Invoice Pending', d.pendingInvoices, Icons.receipt_long,
-          AppColors.warning),
-      ('Clients', d.totalClients, Icons.people_alt, AppColors.secondary),
-      ('Tabungan', d.totalSavings, Icons.savings, AppColors.success),
+          AppColors.success),
+      ('Clients', d.totalClients, Icons.people_alt, AppColors.warning),
+      ('Tabungan', d.totalSavings, Icons.savings, AppColors.purpleAccent),
     ];
 
     return Column(
@@ -187,24 +187,30 @@ class DashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: stat.$4,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderDark, width: 3),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: const [
+                  BoxShadow(
+                    offset: Offset(4, 4),
+                    color: AppColors.borderDark,
+                    blurRadius: 0,
+                  ),
+                ],
               ),
-              child: Icon(stat.$3, color: Colors.white, size: 22),
+              child: Icon(stat.$3, color: Colors.white, size: 26),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Text(
               '${stat.$2}',
-              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
             ),
             Text(
               stat.$1,
               style: const TextStyle(
-                  color: AppColors.txtSecondary, fontSize: 12),
+                  color: AppColors.txtSecondary, fontSize: 14),
             ),
           ],
         ),

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/neo_badge.dart';
 import '../../core/widgets/neo_card.dart';
 import '../../core/widgets/neo_empty_state.dart';
 import '../../core/widgets/neo_scaffold.dart';
@@ -24,6 +23,32 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  Widget _filterChip(String label, bool active, VoidCallback onTap) {
+    return Material(
+      color: active ? AppColors.primary : AppColors.surface,
+      borderRadius: BorderRadius.circular(999),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+        side: const BorderSide(color: AppColors.borderDark, width: 4),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              color: active ? Colors.white : AppColors.txtPrimary,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -62,9 +87,28 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                   borderRadius: BorderRadius.circular(16),
                   borderSide: const BorderSide(color: AppColors.borderDark, width: 4),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 4),
+                ),
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: Row(
+              children: [
+                _filterChip('Semua', !_showPinnedOnly, () {
+                  setState(() => _showPinnedOnly = false);
+                }),
+                const SizedBox(width: 8),
+                _filterChip('Disematkan', _showPinnedOnly, () {
+                  setState(() => _showPinnedOnly = true);
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           Expanded(
             child: notes.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -101,6 +145,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
                     return _NoteCard(
                       title: note.title,
                       content: note.content,
+                      category: note.category,
                       tags: note.tags,
                       pinned: note.isPinned,
                       favorite: note.isFavorite,
@@ -126,6 +171,7 @@ class _NotesScreenState extends ConsumerState<NotesScreen> {
 class _NoteCard extends StatelessWidget {
   final String title;
   final String content;
+  final String? category;
   final List<String> tags;
   final bool pinned;
   final bool favorite;
@@ -137,6 +183,7 @@ class _NoteCard extends StatelessWidget {
     required this.title,
     required this.content,
     required this.tags,
+    this.category,
     required this.pinned,
     required this.favorite,
     required this.onTap,
@@ -174,11 +221,29 @@ class _NoteCard extends StatelessWidget {
                   onPressed: onToggleFavorite,
                   icon: Icon(
                     favorite ? Icons.star : Icons.star_outline,
-                    color: favorite ? AppColors.warning : AppColors.txtSecondary,
+                    color: favorite ? AppColors.danger : AppColors.txtSecondary,
                   ),
                 ),
               ],
             ),
+            if (category != null && category!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  category!,
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 6),
             Text(
               content,
@@ -190,12 +255,37 @@ class _NoteCard extends StatelessWidget {
               const SizedBox(height: 10),
               Wrap(
                 spacing: 6,
-                children: tags
-                    .map((t) => NeoBadge(label: t, color: AppColors.secondary))
-                    .toList(),
+                runSpacing: 6,
+                children: tags.map((t) => _TagChip(tag: t)).toList(),
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  final String tag;
+
+  const _TagChip({required this.tag});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.borderDark, width: 2),
+      ),
+      child: Text(
+        tag,
+        style: const TextStyle(
+          color: AppColors.txtSecondary,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

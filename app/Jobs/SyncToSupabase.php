@@ -6,9 +6,11 @@ use App\Services\SupabaseSyncService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -30,8 +32,33 @@ class SyncToSupabase implements ShouldQueue
             return;
         }
 
+        try {
+            $this->sync($supabase);
+        } catch (\Throwable $e) {
+            // Best effort — never let a Supabase hiccup break the web app.
+            Log::warning('Supabase sync failed', [
+                'model' => $this->modelClass,
+                'id' => $this->id,
+                'action' => $this->action,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    protected function sync(SupabaseSyncService $supabase): void
+    {
         $table = Str::snake(Str::pluralStudly(class_basename($this->modelClass)));
-        $model = $this->modelClass::withTrashed()->find($this->id);
+
+        // Only soft-deletable models support withTrashed(); others are
+        // hard-deleted from Supabase immediately.
+        $softDeletes = in_array(
+            SoftDeletes::class,
+            class_uses_recursive($this->modelClass),
+            true,
+        );
+        $model = $softDeletes
+            ? $this->modelClass::withTrashed()->find($this->id)
+            : $this->modelClass::find($this->id);
 
         if ($this->action === 'delete' && $model === null) {
             $supabase->delete($table, $this->id);
@@ -44,7 +71,7 @@ class SyncToSupabase implements ShouldQueue
         if ($this->action === 'delete') {
             // Soft-deletable models keep the row and flag deleted_at; the rest
             // are hard-deleted from Supabase.
-            if ($model && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses_recursive($model))) {
+            if ($model && $softDeletes) {
                 $payload['deleted_at'] = now()->toIso8601String();
                 $supabase->upsert($table, $payload, 'id');
             } else {

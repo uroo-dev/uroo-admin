@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 /// Brutalist text field: white bg, 4px border, radius 16, large padding.
+/// Flat (no shadow) — matches the web inputs (DESIGN.MD section 13).
 class NeoInput extends StatelessWidget {
   final String? label;
   final String? hint;
@@ -41,9 +42,6 @@ class NeoInput extends StatelessWidget {
         ],
         Container(
           decoration: BoxDecoration(
-            boxShadow: const [
-              BoxShadow(offset: Offset(4, 4), color: AppColors.borderDark, blurRadius: 0),
-            ],
             borderRadius: BorderRadius.circular(16),
           ),
           child: TextFormField(

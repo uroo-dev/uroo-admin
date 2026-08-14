@@ -25,40 +25,47 @@ class MainShell extends ConsumerWidget {
       backgroundColor: AppColors.background,
       drawer: _buildDrawer(context, ref),
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: AppColors.surface,
-        height: 72,
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (i) => _switchTab(context, i),
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        indicatorColor: AppColors.primary,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.space_dashboard_outlined),
-            selectedIcon: Icon(Icons.space_dashboard, color: Colors.white),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.sticky_note_2_outlined),
-            selectedIcon: Icon(Icons.sticky_note_2, color: Colors.white),
-            label: 'Catatan',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.lightbulb_outline),
-            selectedIcon: Icon(Icons.lightbulb, color: Colors.white),
-            label: 'Ide',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.savings_outlined),
-            selectedIcon: Icon(Icons.savings, color: Colors.white),
-            label: 'Tabungan',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long, color: Colors.white),
-            label: 'Invoice',
-          ),
-        ],
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(top: BorderSide(color: AppColors.borderDark, width: 4)),
+        ),
+        child: NavigationBar(
+          backgroundColor: AppColors.surface,
+          height: 72,
+          elevation: 0,
+          selectedIndex: navigationShell.currentIndex,
+          onDestinationSelected: (i) => _switchTab(context, i),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          indicatorColor: AppColors.primary,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.space_dashboard_outlined),
+              selectedIcon: Icon(Icons.space_dashboard, color: Colors.white),
+              label: 'Dashboard',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.sticky_note_2_outlined),
+              selectedIcon: Icon(Icons.sticky_note_2, color: Colors.white),
+              label: 'Catatan',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.lightbulb_outline),
+              selectedIcon: Icon(Icons.lightbulb, color: Colors.white),
+              label: 'Ide',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.savings_outlined),
+              selectedIcon: Icon(Icons.savings, color: Colors.white),
+              label: 'Tabungan',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.receipt_long_outlined),
+              selectedIcon: Icon(Icons.receipt_long, color: Colors.white),
+              label: 'Invoice',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -131,6 +138,7 @@ class MainShell extends ConsumerWidget {
               context,
               icon: Icons.logout,
               label: 'Keluar',
+              color: AppColors.danger,
               onTap: () async {
                 Navigator.of(context).pop();
                 await ref.read(authControllerProvider.notifier).signOut();
@@ -149,6 +157,7 @@ class MainShell extends ConsumerWidget {
     required String label,
     required VoidCallback onTap,
     bool active = false,
+    Color? color,
   }) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -173,7 +182,7 @@ class MainShell extends ConsumerWidget {
             ),
             child: Row(
               children: [
-                Icon(icon, color: active ? Colors.white : AppColors.txtPrimary,
+                Icon(icon, color: active ? Colors.white : (color ?? AppColors.txtPrimary),
                     size: 24),
                 const SizedBox(width: 14),
                 Text(
@@ -181,7 +190,7 @@ class MainShell extends ConsumerWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
-                    color: active ? Colors.white : AppColors.txtPrimary,
+                    color: active ? Colors.white : (color ?? AppColors.txtPrimary),
                   ),
                 ),
               ],

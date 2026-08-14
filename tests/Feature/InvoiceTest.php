@@ -33,8 +33,10 @@ class InvoiceTest extends TestCase
         return array_merge([
             'client_id' => $client->id,
             'due_date' => now()->addDays(14)->format('Y-m-d'),
+            'items' => [
+                ['description' => 'Jasa pembuatan aplikasi', 'quantity' => 1, 'rate' => 1000000],
+            ],
             'status' => 'hutang',
-            'total_billing' => 1000000,
             'paid_amount' => 0,
             'notes' => 'Invoice test',
         ], $overrides);

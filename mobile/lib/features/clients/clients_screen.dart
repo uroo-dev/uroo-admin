@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/neo_badge.dart';
 import '../../core/widgets/neo_card.dart';
 import '../../core/widgets/neo_empty_state.dart';
 import '../../core/widgets/neo_scaffold.dart';
@@ -19,7 +20,7 @@ class ClientsScreen extends ConsumerWidget {
       title: 'Clients',
       showBack: false,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.purpleAccent,
+        backgroundColor: AppColors.primary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: const BorderSide(color: AppColors.borderDark, width: 4),
@@ -79,6 +80,12 @@ class ClientsScreen extends ConsumerWidget {
                               style: const TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w800),
                             ),
+                            if (client.email != null && client.email!.isNotEmpty)
+                              Text(
+                                client.email!,
+                                style: const TextStyle(
+                                    color: AppColors.txtSecondary, fontSize: 12),
+                              ),
                             if (client.company != null &&
                                 client.company!.isNotEmpty)
                               Text(
@@ -94,6 +101,11 @@ class ClientsScreen extends ConsumerWidget {
                               ),
                           ],
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      NeoBadge(
+                        label: client.status,
+                        color: AppColors.statusColor(client.status),
                       ),
                     ],
                   ),

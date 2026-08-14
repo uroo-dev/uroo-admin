@@ -21,7 +21,7 @@ class InvoicesScreen extends ConsumerWidget {
       title: 'Invoice',
       showBack: false,
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.secondary,
+        backgroundColor: AppColors.primary,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
           side: const BorderSide(color: AppColors.borderDark, width: 4),
@@ -46,6 +46,10 @@ class InvoicesScreen extends ConsumerWidget {
             itemCount: list.length,
             itemBuilder: (context, i) {
               final inv = list[i];
+              final overdue = inv.dueDate != null &&
+                  !inv.isPaid &&
+                  inv.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1)));
+              final remaining = inv.total - inv.paidAmount;
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: NeoCard(
@@ -59,7 +63,7 @@ class InvoicesScreen extends ConsumerWidget {
                           color: inv.isPaid
                               ? AppColors.success
                               : AppColors.warning,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(18),
                           border: Border.all(color: AppColors.borderDark, width: 3),
                         ),
                         child: const Icon(Icons.receipt,
@@ -73,7 +77,9 @@ class InvoicesScreen extends ConsumerWidget {
                             Text(
                               '#${inv.invoiceNumber}',
                               style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w800),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.primary),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -83,9 +89,15 @@ class InvoicesScreen extends ConsumerWidget {
                             ),
                             if (inv.dueDate != null)
                               Text(
-                                'Jatuh tempo ${FormatUtil.date(inv.dueDate)}',
-                                style: const TextStyle(
-                                    color: AppColors.txtSecondary, fontSize: 12),
+                                'Jatuh tempo ${FormatUtil.date(inv.dueDate)}${overdue ? ' • Terlambat' : ''}',
+                                style: TextStyle(
+                                    color: overdue
+                                        ? AppColors.danger
+                                        : AppColors.txtSecondary,
+                                    fontWeight: overdue
+                                        ? FontWeight.w800
+                                        : FontWeight.w400,
+                                    fontSize: 12),
                               ),
                           ],
                         ),
@@ -98,6 +110,21 @@ class InvoicesScreen extends ConsumerWidget {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w800, fontSize: 15),
                           ),
+                          Text(
+                            'Terbayar ${FormatUtil.rupiah(inv.paidAmount)}',
+                            style: const TextStyle(
+                                color: AppColors.success,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700),
+                          ),
+                          if (remaining > 0)
+                            Text(
+                              'Sisa ${FormatUtil.rupiah(remaining)}',
+                              style: const TextStyle(
+                                  color: AppColors.danger,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700),
+                            ),
                           const SizedBox(height: 6),
                           NeoBadge(
                             label: inv.status,

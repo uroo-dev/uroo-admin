@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'neo_button.dart';
 
 class NeoEmptyState extends StatelessWidget {
   final String title;
   final String message;
   final IconData icon;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const NeoEmptyState({
     super.key,
     required this.title,
     required this.message,
     this.icon = Icons.inbox,
+    this.actionLabel,
+    this.onAction,
   });
 
   @override
@@ -49,6 +54,14 @@ class NeoEmptyState extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 20),
+              NeoButton(
+                label: actionLabel!,
+                icon: Icons.add,
+                onPressed: onAction!,
+              ),
+            ],
           ],
         ),
       ),

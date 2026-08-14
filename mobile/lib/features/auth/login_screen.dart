@@ -59,6 +59,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: AppColors.primary,
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(color: AppColors.borderDark, width: 4),
+                        boxShadow: const [
+                          BoxShadow(
+                            offset: Offset(4, 4),
+                            color: AppColors.borderDark,
+                            blurRadius: 0,
+                          ),
+                        ],
                       ),
                       child: const Icon(Icons.rocket_launch,
                           color: Colors.white, size: 36),

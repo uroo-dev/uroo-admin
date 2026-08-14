@@ -23,7 +23,7 @@ abstract class AppColors {
   static const Color txtPrimary = Color(0xFF111827);
   static const Color txtSecondary = Color(0xFF6B7280);
 
-  /// Status badge colors (DESIGN.MD section 16).
+  /// Status badge colors (DESIGN.MD section 16, aligned with the web badges).
   static const Map<String, Color> statusColors = {
     'development': secondary,
     'testing': warning,
@@ -33,12 +33,17 @@ abstract class AppColors {
     'production': purpleAccent,
     'hutang': warning,
     'lunas': success,
+    'research': warning,
     'draft': Color(0xFF9CA3AF),
     'idea': purpleAccent,
     'high': danger,
     'medium': warning,
-    'low': secondary,
+    'low': success,
+    'deal': warning,
+    'pending': secondary,
+    'canceled': danger,
   };
 
-  static Color statusColor(String status) => statusColors[status] ?? secondary;
+  static Color statusColor(String status) =>
+      statusColors[status] ?? const Color(0xFF9CA3AF);
 }
