@@ -117,6 +117,7 @@ jobs:
             --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --base-href "$BASE_PATH"
           cp build/app/outputs/flutter-apk/app-release.apk build/web/UROO.Admin.apk
+          sed "s/__VERSION__/${GITHUB_REF_NAME:-latest}/" web/landing.html > build/web/index.html
 
       - name: Configure Pages
         id: pages
