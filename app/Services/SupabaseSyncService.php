@@ -196,16 +196,24 @@ class SupabaseSyncService
     }
 
     /**
-     * Admin API: set a new password for an existing Supabase Auth user.
+     * Admin API: set a new password for an existing Supabase Auth user and
+     * optionally mark the email as confirmed (required when the account was
+     * created but never verified via the confirmation link).
      */
-    public function updateAuthUserPassword(string $uid, string $password): bool
+    public function updateAuthUserPassword(string $uid, string $password, bool $confirmEmail = true): bool
     {
         if (! $this->isConfigured()) {
             return false;
         }
 
+        $payload = ['password' => $password];
+
+        if ($confirmEmail) {
+            $payload['email_confirm'] = true;
+        }
+
         return $this->authClient()
-            ->put('/auth/v1/admin/users/'.$uid, ['password' => $password])
+            ->put('/auth/v1/admin/users/'.$uid, $payload)
             ->successful();
     }
 
