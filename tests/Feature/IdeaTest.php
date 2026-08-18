@@ -123,6 +123,6 @@ class IdeaTest extends TestCase
             ->delete(route('ideas.destroy', $idea))
             ->assertRedirect(route('ideas.index'));
 
-        $this->assertDatabaseMissing('app_ideas', ['id' => $idea->id]);
+        $this->assertSoftDeleted('app_ideas', ['id' => $idea->id]);
     }
 }

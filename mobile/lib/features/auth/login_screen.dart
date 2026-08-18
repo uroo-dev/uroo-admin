@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/session/server_url_prompt.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/neo_button.dart';
-import '../../core/widgets/neo_card.dart';
-import '../../core/widgets/neo_input.dart';
 import 'auth_controller.dart';
+import 'auth_widgets.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +18,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _remember = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => ensureServerUrl(context));
+  }
 
   @override
   void dispose() {
@@ -48,100 +54,99 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: NeoCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppColors.borderDark, width: 4),
-                        boxShadow: const [
-                          BoxShadow(
-                            offset: Offset(4, 4),
-                            color: AppColors.borderDark,
-                            blurRadius: 0,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(Icons.rocket_launch,
-                          color: Colors.white, size: 36),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'UROO.Admin',
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Masuk ke akun kamu',
-                      style: TextStyle(
-                        color: AppColors.txtSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Form(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const AuthLogoBlock(subtitle: 'Workspace — Masuk ke akunmu'),
+                  const SizedBox(height: 32),
+                  AuthCard(
+                    child: Form(
                       key: _formKey,
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          NeoInput(
+                          AuthField(
                             controller: _email,
                             label: 'Email',
-                            hint: 'kamu@email.com',
-                            icon: Icons.email_outlined,
+                            hint: 'nama@email.com',
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) => (v == null || v.trim().isEmpty)
                                 ? 'Email wajib diisi'
                                 : null,
                           ),
-                          const SizedBox(height: 16),
-                          NeoInput(
+                          const SizedBox(height: 20),
+                          AuthField(
                             controller: _password,
                             label: 'Password',
-                            icon: Icons.lock_outline,
+                            hint: '••••••••',
                             obscure: true,
                             validator: (v) => (v == null || v.isEmpty)
                                 ? 'Password wajib diisi'
                                 : null,
                           ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Checkbox(
+                                  value: _remember,
+                                  onChanged: (v) =>
+                                      setState(() => _remember = v ?? false),
+                                  activeColor: AppColors.primary,
+                                  checkColor: Colors.white,
+                                  side: const BorderSide(
+                                    color: AppColors.borderDark,
+                                    width: 4,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Ingat saya',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          if (auth.hasError) ...[
+                            Text(
+                              '${auth.error}',
+                              style: const TextStyle(
+                                color: AppColors.danger,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                          AuthButton(
+                            label: 'Masuk',
+                            loading: auth.isLoading,
+                            onPressed: _submit,
+                          ),
+                          const SizedBox(height: 20),
+                          const AuthFooterLink(
+                            label: 'Belum punya akun? ',
+                            linkLabel: 'Daftar',
+                            route: '/register',
+                          ),
                         ],
                       ),
                     ),
-                    if (auth.hasError) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        '${auth.error}',
-                        style: const TextStyle(
-                          color: AppColors.danger,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    NeoButton(
-                      label: 'Masuk',
-                      icon: Icons.login,
-                      expanded: true,
-                      loading: auth.isLoading,
-                      onPressed: _submit,
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () => context.go('/register'),
-                      child: const Text(
-                        'Belum punya akun? Daftar',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -127,6 +127,6 @@ class NoteTest extends TestCase
             ->delete(route('notes.destroy', $note))
             ->assertRedirect(route('notes.index'));
 
-        $this->assertDatabaseMissing('notes', ['id' => $note->id]);
+        $this->assertSoftDeleted('notes', ['id' => $note->id]);
     }
 }

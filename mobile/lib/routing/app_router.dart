@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/supabase/supabase_client.dart';
+import '../core/session/session_store.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
 import '../features/brain_dumps/brain_dump_form_screen.dart';
@@ -21,6 +21,7 @@ import '../features/projects/projects_screen.dart';
 import '../features/savings/savings_detail_screen.dart';
 import '../features/savings/savings_form_screen.dart';
 import '../features/savings/savings_screen.dart';
+import '../features/settings/settings_screen.dart';
 import '../features/shell/main_shell.dart';
 
 /// Fires whenever auth state changes so the router re-evaluates redirects.
@@ -37,9 +38,9 @@ final _shellBranches = [
 GoRouter buildRouter() {
   return GoRouter(
     initialLocation: '/',
-    refreshListenable: authRefresh,
+    refreshListenable: currentSession,
     redirect: (context, state) {
-      final session = supabase.auth.currentSession;
+      final session = currentSession.value;
       final at =
           state.matchedLocation == '/login' || state.matchedLocation == '/register';
       if (session == null) return at ? null : '/login';
@@ -84,6 +85,7 @@ GoRouter buildRouter() {
       GoRoute(
           path: '/invoices/:id',
           builder: (_, s) => InvoiceDetailScreen(id: int.parse(s.pathParameters['id']!))),
+      GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
     ],
   );
 }

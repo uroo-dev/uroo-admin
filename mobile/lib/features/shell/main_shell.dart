@@ -2,29 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/sync/sync_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../auth/auth_controller.dart';
 
 /// Main scaffold with bottom navigation + drawer (Neo brutalism).
-class MainShell extends ConsumerWidget {
+class MainShell extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainShell({super.key, required this.navigationShell});
 
+  @override
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Sinkron otomatis saat app dibuka (dan tiap 30 detik).
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(syncProvider.notifier).syncNow());
+  }
+
   void _switchTab(BuildContext context, int index) {
-    navigationShell.goBranch(
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
+@override
+  Widget build(BuildContext context) {
+    // Pastikan SyncController hidup (jadwal timer tiap 30 detik).
+    ref.watch(syncProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      drawer: _buildDrawer(context, ref),
-      body: navigationShell,
+      drawer: _buildDrawer(context),
+      body: widget.navigationShell,
       bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
           color: AppColors.surface,
@@ -34,7 +51,7 @@ class MainShell extends ConsumerWidget {
           backgroundColor: AppColors.surface,
           height: 72,
           elevation: 0,
-          selectedIndex: navigationShell.currentIndex,
+          selectedIndex: widget.navigationShell.currentIndex,
           onDestinationSelected: (i) => _switchTab(context, i),
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           indicatorColor: AppColors.primary,
@@ -70,13 +87,14 @@ class MainShell extends ConsumerWidget {
     );
   }
 
-  Widget _buildDrawer(BuildContext context, WidgetRef ref) {
+  Widget _buildDrawer(BuildContext context) {
     final tabs = ['dashboard', 'notes', 'ideas', 'savings', 'invoices'];
     final extra = [
       ('Brain Dumps', Icons.psychology_outlined, '/brain-dumps'),
       ('Clients', Icons.people_alt_outlined, '/clients'),
       ('Projects', Icons.folder_copy_outlined, '/projects'),
     ];
+    final settings = ('Pengaturan', Icons.settings, '/settings');
 
     return Drawer(
       backgroundColor: AppColors.surface,
@@ -113,7 +131,7 @@ class MainShell extends ConsumerWidget {
                         Icons.receipt_long_outlined,
                       ][i],
                       label: ['Dashboard', 'Catatan', 'Ide', 'Tabungan', 'Invoice'][i],
-                      active: i == navigationShell.currentIndex,
+                      active: i == widget.navigationShell.currentIndex,
                       onTap: () {
                         Navigator.of(context).pop();
                         _switchTab(context, i);
@@ -130,6 +148,15 @@ class MainShell extends ConsumerWidget {
                         context.go(e.$3);
                       },
                     ),
+                  _drawerItem(
+                    context,
+                    icon: settings.$2,
+                    label: settings.$1,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      context.go(settings.$3);
+                    },
+                  ),
                 ],
               ),
             ),

@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SavingsTransaction extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'goal_id',
         'type',

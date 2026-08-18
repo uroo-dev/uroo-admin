@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-/// SQLite-friendly helpers for Supabase jsonb columns (currently json/dynamic).
+/// SQLite-friendly helpers for JSON columns.
 class Jsonc {
   static List<String> toStringList(dynamic v) {
     if (v is List) return v.map((e) => e.toString()).toList();

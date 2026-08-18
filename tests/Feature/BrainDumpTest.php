@@ -98,6 +98,6 @@ class BrainDumpTest extends TestCase
             ->delete(route('brain-dumps.destroy', $dump))
             ->assertRedirect(route('brain-dumps.index'));
 
-        $this->assertDatabaseMissing('brain_dumps', ['id' => $dump->id]);
+        $this->assertSoftDeleted('brain_dumps', ['id' => $dump->id]);
     }
 }

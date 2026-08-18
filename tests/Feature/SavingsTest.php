@@ -149,7 +149,7 @@ class SavingsTest extends TestCase
             ->delete(route('savings.destroy', $goal))
             ->assertRedirect(route('savings.index'));
 
-        $this->assertDatabaseMissing('savings_goals', ['id' => $goal->id]);
+        $this->assertSoftDeleted('savings_goals', ['id' => $goal->id]);
         $this->assertEquals(0, SavingsTransaction::count());
     }
 }
