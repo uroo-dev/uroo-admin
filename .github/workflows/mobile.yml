@@ -87,9 +87,7 @@ jobs:
       - name: Build release APK
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          flutter build apk --release \
-            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          flutter build apk --release
           cp build/app/outputs/flutter-apk/app-release.apk UROO.Admin.apk
 
       - name: Upload APK artifact
@@ -113,8 +111,6 @@ jobs:
           BASE_PATH: /${{ github.event.repository.name }}/
         run: |
           flutter build web --release \
-            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
-            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --base-href "$BASE_PATH"
           cp build/app/outputs/flutter-apk/app-release.apk build/web/UROO.Admin.apk
           sed "s/__VERSION__/${GITHUB_REF_NAME:-latest}/" web/landing.html > build/web/index.html

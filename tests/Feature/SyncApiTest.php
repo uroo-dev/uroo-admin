@@ -172,7 +172,7 @@ class SyncApiTest extends TestCase
         $since = $older->updated_at->subMinutes(3)->toIso8601String();
 
         $response = $this->withToken($this->token)
-            ->getJson("/api/v1/sync/pull?since=".urlencode($since))
+            ->getJson('/api/v1/sync/pull?since='.urlencode($since))
             ->assertOk();
 
         $names = collect($response->json('tables.clients'))->pluck('name');

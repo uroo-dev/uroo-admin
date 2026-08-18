@@ -20,7 +20,7 @@ class Session {
   });
 }
 
-/// Diberitahukan ke router saat sesi berubah (pengganti Supabase auth stream).
+/// Diberitahukan ke router saat sesi berubah.
 final ValueNotifier<Session?> currentSession = ValueNotifier(null);
 
 const _kServerUrl = 'server_url';

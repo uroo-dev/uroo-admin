@@ -93,6 +93,7 @@ class _MainShellState extends ConsumerState<MainShell> {
       ('Brain Dumps', Icons.psychology_outlined, '/brain-dumps'),
       ('Clients', Icons.people_alt_outlined, '/clients'),
       ('Projects', Icons.folder_copy_outlined, '/projects'),
+      ('GitHub', Icons.code, '/github'),
     ];
     final settings = ('Pengaturan', Icons.settings, '/settings');
 

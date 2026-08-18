@@ -9,6 +9,8 @@ import '../features/brain_dumps/brain_dumps_screen.dart';
 import '../features/clients/client_form_screen.dart';
 import '../features/clients/clients_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
+import '../features/github/github_commits_screen.dart';
+import '../features/github/github_repos_screen.dart';
 import '../features/ideas/idea_form_screen.dart';
 import '../features/ideas/ideas_screen.dart';
 import '../features/invoices/invoice_detail_screen.dart';
@@ -86,6 +88,13 @@ GoRouter buildRouter() {
           path: '/invoices/:id',
           builder: (_, s) => InvoiceDetailScreen(id: int.parse(s.pathParameters['id']!))),
       GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+      GoRoute(path: '/github', builder: (_, __) => const GitHubReposScreen()),
+      GoRoute(
+          path: '/github/:owner/:repo',
+          builder: (_, s) => GitHubCommitsScreen(
+                owner: s.pathParameters['owner']!,
+                repo: s.pathParameters['repo']!,
+              )),
     ],
   );
 }

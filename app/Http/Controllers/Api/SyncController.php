@@ -69,7 +69,7 @@ class SyncController extends Controller
 
         foreach ($payload['tables'] as $table => $rows) {
             if (! config("sync.tables.$table")) {
-                return response()->json(["message" => "Tabel '$table' tidak disinkronkan."], 422);
+                return response()->json(['message' => "Tabel '$table' tidak disinkronkan."], 422);
             }
 
             $columns = Schema::getColumnListing($table);

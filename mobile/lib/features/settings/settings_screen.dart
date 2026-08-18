@@ -20,11 +20,16 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _serverUrl = TextEditingController();
+  final _githubUsername = TextEditingController();
+  final _githubToken = TextEditingController();
   bool _urlLoaded = false;
+  bool _githubLoaded = false;
 
   @override
   void dispose() {
     _serverUrl.dispose();
+    _githubUsername.dispose();
+    _githubToken.dispose();
     super.dispose();
   }
 
@@ -37,6 +42,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
   }
 
+  Future<void> _loadGithub() async {
+    final db = AppDatabase.instance;
+    final username = await db.meta('github_username');
+    final token = await db.meta('github_token');
+    if (!mounted) return;
+    setState(() {
+      _githubUsername.text = username ?? '';
+      _githubToken.text = token ?? '';
+      _githubLoaded = true;
+    });
+  }
+
   Future<void> _saveServerUrl() async {
     final url = _serverUrl.text.trim();
     if (url.isEmpty) return;
@@ -45,6 +62,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('URL server disimpan. Login ulang agar diterapkan.')),
+    );
+  }
+
+  Future<void> _saveGithub() async {
+    final db = AppDatabase.instance;
+    await db.setMeta('github_username', _githubUsername.text.trim());
+    await db.setMeta('github_token', _githubToken.text.trim());
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Pengaturan GitHub disimpan.')),
     );
   }
 
@@ -168,6 +195,96 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
               ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          FutureBuilder<void>(
+            future: _githubLoaded ? null : _loadGithub(),
+            builder: (context, _) => NeoCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'GitHub',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Username & token (PAT) untuk lihat repositori/commit di HP',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.txtSecondary),
+                  ),
+                  const SizedBox(height: 14),
+                  TextField(
+                    controller: _githubUsername,
+                    autocorrect: false,
+                    decoration: InputDecoration(
+                      hintText: 'username',
+                      labelText: 'Username',
+                      filled: true,
+                      fillColor: AppColors.surfaceAlt,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                            color: AppColors.borderDark, width: 4),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                            color: AppColors.borderDark, width: 4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _githubToken,
+                    autocorrect: false,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: 'ghp_xxxxxxxxxxxx',
+                      labelText: 'Personal Access Token',
+                      filled: true,
+                      fillColor: AppColors.surfaceAlt,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                            color: AppColors.borderDark, width: 4),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                            color: AppColors.borderDark, width: 4),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 46,
+                    child: ElevatedButton(
+                      onPressed: _saveGithub,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.pinkAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                          side: const BorderSide(
+                              color: AppColors.borderDark, width: 4),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Simpan GitHub',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),

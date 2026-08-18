@@ -1,11 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Internet untuk koneksi ke Supabase -->
+    <!-- Internet untuk API lokal (sync) + GitHub API -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:label="UROO.Admin"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
