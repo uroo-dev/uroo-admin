@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/session/session_store.dart';
 import '../../core/sync/sync_controller.dart';
-import '../../core/sync/sync_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/neo_card.dart';
 import '../../core/widgets/neo_scaffold.dart';
+import '../../core/widgets/sync_status_badge.dart';
 import '../../data/db/app_database.dart';
 import '../auth/auth_controller.dart';
 
@@ -24,6 +24,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   final _githubToken = TextEditingController();
   bool _urlLoaded = false;
   bool _githubLoaded = false;
+  String? _pingMessage; // null = sukses / belum dites
+  bool _testing = false;
 
   @override
   void dispose() {
@@ -55,7 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _saveServerUrl() async {
-    final url = _serverUrl.text.trim();
+    final url = _normalizeUrl(_serverUrl.text);
     if (url.isEmpty) return;
 
     await AppDatabase.instance.setMeta('server_url', url);
@@ -63,6 +65,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('URL server disimpan. Login ulang agar diterapkan.')),
     );
+  }
+
+  String _normalizeUrl(String raw) {
+    var url = raw.trim();
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    return url;
+  }
+
+  Future<void> _testConnection() async {
+    final url = _normalizeUrl(_serverUrl.text);
+    if (url.isEmpty) {
+      setState(() => _pingMessage = 'Isi URL server dulu.');
+      return;
+    }
+
+    setState(() {
+      _testing = true;
+      _pingMessage = null;
+    });
+
+    final error = await ref.read(syncProvider.notifier).testConnection(url);
+    if (!mounted) return;
+    setState(() {
+      _testing = false;
+      _pingMessage = error ?? 'Terhubung! Server siap sinkronisasi.';
+    });
   }
 
   Future<void> _saveGithub() async {
@@ -91,13 +121,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text(
-                    'Server',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  const Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Server',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      SyncStatusBadge(),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'URL web UROO.Admin untuk sinkronisasi',
+                    'URL ngrok web lokal untuk sinkronisasi',
                     style: TextStyle(fontSize: 12, color: AppColors.txtSecondary),
                   ),
                   const SizedBox(height: 14),
@@ -106,7 +143,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     keyboardType: TextInputType.url,
                     autocorrect: false,
                     decoration: InputDecoration(
-                      hintText: 'http://192.168.1.10:8000',
+                      hintText: 'https://xxxx.ngrok-free.app',
                       filled: true,
                       fillColor: AppColors.surfaceAlt,
                       contentPadding: const EdgeInsets.symmetric(
@@ -123,26 +160,81 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Jalankan "composer uroo" di web lalu salin URL Forwarding ngrok ke sini.',
+                    style: TextStyle(fontSize: 11, color: AppColors.txtSecondary),
+                  ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    height: 46,
-                    child: ElevatedButton(
-                      onPressed: _saveServerUrl,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                          side: const BorderSide(
-                              color: AppColors.borderDark, width: 4),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        'Simpan URL',
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                  if (_pingMessage != null) ...[
+                    Text(
+                      _pingMessage!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: _testing
+                            ? AppColors.txtSecondary
+                            : _pingMessage!.startsWith('Terhubung')
+                                ? AppColors.success
+                                : AppColors.danger,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                  ],
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 46,
+                          child: ElevatedButton(
+                            onPressed: _saveServerUrl,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                                side: const BorderSide(
+                                    color: AppColors.borderDark, width: 4),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              'Simpan URL',
+                              style: TextStyle(fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 46,
+                          child: OutlinedButton(
+                            onPressed: _testing ? null : _testConnection,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: AppColors.surface,
+                              foregroundColor: AppColors.txtPrimary,
+                              side: const BorderSide(
+                                  color: AppColors.borderDark, width: 4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                            child: _testing
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(strokeWidth: 3),
+                                  )
+                                : const Text(
+                                    'Tes Koneksi',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.w800),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -159,16 +251,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _syncStatusLine(sync),
+                  _syncStatusLine(ref.watch(syncProvider)),
                   style: const TextStyle(
                       fontSize: 12, color: AppColors.txtSecondary),
+                ),
+                const SizedBox(height: 4),
+                FutureBuilder<String?>(
+                  future: AppDatabase.instance.meta('last_synced_at'),
+                  builder: (context, snap) {
+                    final at = DateTime.tryParse(snap.data ?? '');
+                    if (at == null) return const SizedBox.shrink();
+                    return Text(
+                      'Sinkron terakhir: ${_formatDateTime(at)}',
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.txtSecondary),
+                    );
+                  },
                 ),
                 const SizedBox(height: 14),
                 SizedBox(
                   height: 46,
                   child: ElevatedButton(
                     onPressed:
-                        sync.isLoading ? null : () => ref.read(syncProvider.notifier).syncNow(),
+                        sync.syncing ? null : () => ref.read(syncProvider.notifier).syncNow(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.secondary,
                       foregroundColor: Colors.white,
@@ -181,7 +286,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: sync.isLoading
+                    child: sync.syncing
                         ? const SizedBox(
                             width: 22,
                             height: 22,
@@ -336,9 +441,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  String _syncStatusLine(AsyncValue<SyncResult?> sync) {
-    if (sync.isLoading) return 'Menyinkronkan…';
-    final result = sync.valueOrNull;
+  String _formatDateTime(DateTime dt) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${dt.day}/${dt.month}/${dt.year} ${two(dt.hour)}:${two(dt.minute)}';
+  }
+
+  String _syncStatusLine(SyncState sync) {
+    if (sync.syncing) return 'Menyinkronkan…';
+    final result = sync.result;
+    if (sync.phase == ConnectionPhase.notConnected) {
+      return 'Belum tersambung. Login dulu untuk sinkronisasi.';
+    }
     if (result == null) return 'Belum pernah sinkron.';
     if (result.error != null) return 'Terakhir gagal: ${result.error}';
     return 'Terakhir: ${result.pushed} dikirim, ${result.pulled} diterima.';

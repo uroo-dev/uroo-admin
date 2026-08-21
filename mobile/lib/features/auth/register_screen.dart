@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/session/server_url_prompt.dart';
 import '../../core/theme/app_colors.dart';
 import 'auth_controller.dart';
 import 'auth_widgets.dart';
@@ -20,12 +19,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ensureServerUrl(context));
-  }
 
   @override
   void dispose() {

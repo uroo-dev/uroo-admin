@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/session/server_url_prompt.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/db/app_database.dart';
 import 'auth_controller.dart';
 import 'auth_widgets.dart';
+
+/// Kredensial default dari database seeder (database/seeders/DatabaseSeeder.php)
+/// agar first-run tinggal tap "Masuk".
+const _seededEmail = 'dimas@gmail.com';
+const _seededPassword = 'password';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,19 +20,43 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _email = TextEditingController();
-  final _password = TextEditingController();
+  final _serverUrl = TextEditingController();
+  final _email = TextEditingController(text: _seededEmail);
+  final _password = TextEditingController(text: _seededPassword);
   final _formKey = GlobalKey<FormState>();
   bool _remember = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => ensureServerUrl(context));
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadServerUrl());
+  }
+
+  Future<void> _loadServerUrl() async {
+    final saved = await AppDatabase.instance.meta('server_url');
+    if (!mounted || saved == null) return;
+    setState(() => _serverUrl.text = saved);
+  }
+
+  String? _validateServerUrl(String? v) {
+    final url = v?.trim() ?? '';
+    if (url.isEmpty) return 'URL server (ngrok) wajib diisi';
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return 'URL harus diawali http:// atau https://';
+    }
+    return null;
+  }
+
+  void _normalizeUrl() {
+    _serverUrl.text = _serverUrl.text.trim();
+    while (_serverUrl.text.endsWith('/')) {
+      _serverUrl.text = _serverUrl.text.substring(0, _serverUrl.text.length - 1);
+    }
   }
 
   @override
   void dispose() {
+    _serverUrl.dispose();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -35,6 +64,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    _normalizeUrl();
+    await AppDatabase.instance.setMeta('server_url', _serverUrl.text);
+
     final ok = await ref.read(authControllerProvider.notifier).signIn(
           email: _email.text.trim(),
           password: _password.text,
@@ -66,6 +98,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          AuthField(
+                            controller: _serverUrl,
+                            label: 'URL Server (ngrok)',
+                            hint: 'https://xxxx.ngrok-free.app',
+                            keyboardType: TextInputType.url,
+                            validator: _validateServerUrl,
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Jalankan "composer uroo" di web lalu salin URL ngrok-nya.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.txtSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
                           AuthField(
                             controller: _email,
                             label: 'Email',

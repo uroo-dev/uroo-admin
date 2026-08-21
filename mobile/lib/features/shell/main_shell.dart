@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/sync/sync_controller.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/sync_status_badge.dart';
 import '../auth/auth_controller.dart';
 
 /// Main scaffold with bottom navigation + drawer (Neo brutalism).
@@ -110,10 +111,13 @@ class _MainShellState extends ConsumerState<MainShell> {
                 children: [
                   Icon(Icons.rocket_launch, color: AppColors.primary, size: 28),
                   SizedBox(width: 10),
-                  Text(
-                    'UROO.Admin',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  Expanded(
+                    child: Text(
+                      'UROO.Admin',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                    ),
                   ),
+                  SyncStatusBadge(),
                 ],
               ),
             ),

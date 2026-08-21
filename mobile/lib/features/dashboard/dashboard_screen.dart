@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/format_util.dart';
 import '../../core/widgets/neo_badge.dart';
 import '../../core/widgets/neo_card.dart';
+import '../../core/widgets/sync_status_badge.dart';
 import 'dashboard_controller.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -25,6 +26,10 @@ class DashboardScreen extends ConsumerWidget {
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
         ),
         actions: [
+          const Padding(
+            padding: EdgeInsets.only(right: 4),
+            child: Center(child: SyncStatusBadge()),
+          ),
           Builder(
             builder: (context) => IconButton(
               onPressed: () => Scaffold.of(context).openDrawer(),

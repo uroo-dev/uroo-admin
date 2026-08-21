@@ -52,8 +52,32 @@ class SyncService {
   Map<String, String> _headers(Session s, {bool json = true}) => {
         'Authorization': 'Bearer ${s.token}',
         'Accept': 'application/json',
+        // Lewati interstitial warning page ngrok free tier.
+        'ngrok-skip-browser-warning': 'true',
         if (json) 'Content-Type': 'application/json',
       };
+
+  /// Health check tanpa auth — dipakai tombol "Tes Koneksi".
+  Future<void> ping(String serverUrl) async {
+    final http.Response res;
+    try {
+      res = await http
+          .get(
+            Uri.parse('$serverUrl/api/v1/health'),
+            headers: {
+              'Accept': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+    } on Exception {
+      throw SyncException('Tidak bisa terhubung ke server.');
+    }
+
+    if (res.statusCode != 200) {
+      throw SyncException('Server merespons (${res.statusCode}).');
+    }
+  }
 }
 
 extension SyncAuthHelper on SyncService {
